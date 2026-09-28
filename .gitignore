@@ -1,0 +1,7 @@
+﻿# Generated and local tooling output
+**/build/
+**/.vscode/
+**/.agent/
+
+# Excluded project
+/ESP32-S3-Module-for-Judgement-System/
