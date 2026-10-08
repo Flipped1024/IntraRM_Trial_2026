@@ -1,0 +1,8 @@
+../Core/Extend/C_Cpp/HAL_Add.c:11:6:__io_putchar	16	static
+../Core/Extend/C_Cpp/HAL_Add.c:20:7:HI2C_Init	4	static
+../Core/Extend/C_Cpp/HAL_Add.c:39:6:TIM_Reset	16	static
+../Core/Extend/C_Cpp/HAL_Add.c:47:6:TIM_Speed_Check_Start	16	static
+../Core/Extend/C_Cpp/HAL_Add.c:61:6:TIM_Speed_Check_Stop	16	static
+../Core/Extend/C_Cpp/HAL_Add.c:69:6:PWM_Init	24	static
+../Core/Extend/C_Cpp/HAL_Add.c:81:6:PWM_complementary	24	static
+../Core/Extend/C_Cpp/HAL_Add.c:88:6:PWM_Dut	24	static

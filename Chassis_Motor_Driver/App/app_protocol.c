@@ -28,8 +28,14 @@ void appProtocolParse(uint32_t msg_id, const uint8_t *rx_buffer)
         ctrl_frame.num1_target_speed_ = (int16_t)((rx_buffer[0] << 8) | rx_buffer[1]);
         ctrl_frame.num2_target_speed_ = (int16_t)((rx_buffer[2] << 8) | rx_buffer[3]);
 
-        appControlSetTargetSpeed(MOTOR_1, (float)ctrl_frame.num1_target_speed_);
-        appControlSetTargetSpeed(MOTOR_2, (float)ctrl_frame.num2_target_speed_);
+        float motor1_target = (float)ctrl_frame.num1_target_speed_;
+        float motor2_target = (float)ctrl_frame.num2_target_speed_;
+        if (motor1_target > MOTOR_MAX_TARGET_RPM) motor1_target = MOTOR_MAX_TARGET_RPM;
+        if (motor1_target < -MOTOR_MAX_TARGET_RPM) motor1_target = -MOTOR_MAX_TARGET_RPM;
+        if (motor2_target > MOTOR_MAX_TARGET_RPM) motor2_target = MOTOR_MAX_TARGET_RPM;
+        if (motor2_target < -MOTOR_MAX_TARGET_RPM) motor2_target = -MOTOR_MAX_TARGET_RPM;
+        appControlSetTargetSpeed(MOTOR_1, motor1_target);
+        appControlSetTargetSpeed(MOTOR_2, motor2_target);
     }
 }
 

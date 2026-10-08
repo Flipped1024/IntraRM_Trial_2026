@@ -107,8 +107,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  appProtocolInit();
   appControlInit();
+  appProtocolInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -173,6 +173,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *can_handle)
+{
+  if (can_handle == &hcan)
+  {
+    appDebugCanState(can_handle);
+  }
+}
 
 /* USER CODE END 4 */
 

@@ -22,6 +22,8 @@
 #include "dma.h"
 #include "usart.h"
 #include "gpio.h"
+#include "i2c.h"
+#include "tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -32,6 +34,7 @@
 #include "app_remote.h"
 #include "app_debug.h"
 #include "app_gimbal.h"
+#include "bsp_mpu6050.h"
 #include "dma.h"
 #include "usart.h"
 
@@ -82,8 +85,9 @@ static void controlLoop(void)
             g_debug_.can_.motor_rpm_[1] = 0;
             g_debug_.can_.motor_rpm_[2] = 0;
             g_debug_.can_.motor_rpm_[3] = 0;
-            chassisSendCmd(&chassis_);
-            gimbalSendCmd();
+        chassisSendCmd(&chassis_);
+        gimbalSendCmd();
+        gimbalSendYawPitchCmd();
 
             /* The first valid frame after a dropout is accepted only after
              * one complete safe zero-command cycle. */
@@ -102,17 +106,30 @@ static void controlLoop(void)
     case DEBUG_MODE_NONE:
         /* Chassis convention: right/forward/CCW are positive.  The receiver
          * reports forward, left and left-turn as negative values. */
-        chassisSetTarget(&chassis_,
-                         (float)controller_state.left_stick_horizontal_ *
-                             CHASSIS_MAX_LINEAR_SPEED_MPS / CHASSIS_STICK_RANGE,
-                         (float)-controller_state.left_stick_vertical_ *
-                             CHASSIS_MAX_LINEAR_SPEED_MPS / CHASSIS_STICK_RANGE,
-                         (float)-controller_state.right_stick_horizontal_ *
-                             CHASSIS_MAX_ANGULAR_SPEED_RADPS / CHASSIS_STICK_RANGE);
+        {
+            const float vx = (float)controller_state.left_stick_horizontal_ *
+                             CHASSIS_MAX_LINEAR_SPEED_MPS / CHASSIS_STICK_RANGE;
+            const float vy = (float)-controller_state.left_stick_vertical_ *
+                             CHASSIS_MAX_LINEAR_SPEED_MPS / CHASSIS_STICK_RANGE;
+            const float rotation_input =
+                (controller_state.buttons_.lb_pressed_ != 0U ? 1.0f : 0.0f) -
+                (controller_state.buttons_.rb_pressed_ != 0U ? 1.0f : 0.0f);
+            const float vw = rotation_input * CHASSIS_MAX_ANGULAR_SPEED_RADPS;
+
+            /* Mirror the effective hand-controller target into the watchable
+             * debug object.  These fields used to remain at their init value
+             * in normal mode, which made a working left-stick path look dead
+             * in Ozone. */
+            g_debug_.chassis_.vx_ = vx;
+            g_debug_.chassis_.vy_ = vy;
+            g_debug_.chassis_.vw_ = vw;
+            chassisSetTarget(&chassis_, vx, vy, vw);
+        }
         chassisUpdate(&chassis_);
         chassisSendCmd(&chassis_);
         gimbalUpdate();
         gimbalSendCmd();
+        gimbalSendYawPitchCmd();
         break;
     }
 }
@@ -154,6 +171,8 @@ int main(void)
   MX_DMA_Init();
   MX_CAN1_Init();
   MX_USART3_UART_Init();
+  MX_I2C2_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
   /* The ESP32 controller link is 115200 8N1.  This also handles a stale
    * generated usart.c until CubeMX is regenerated from the current .ioc. */
@@ -182,6 +201,7 @@ int main(void)
    * are all installed.  This is a configuration/driver check only; it does
    * not prove that a transceiver or a peer is present on the physical bus. */
   controllerRxInit(&huart3);
+  (void)mpu6050Init();
 
   /* USER CODE END 2 */
 
@@ -193,6 +213,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     if (bspTimControlPeriodElapsed()) {
+      mpu6050Update();
       controlLoop();
     }
   }

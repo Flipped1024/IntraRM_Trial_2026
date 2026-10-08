@@ -1,0 +1,2 @@
+../Core/Extend/C_Cpp/Pin.c:11:6:Pin_Blink	24	static
+../Core/Extend/C_Cpp/Pin.c:19:6:Pin_debounce	24	static

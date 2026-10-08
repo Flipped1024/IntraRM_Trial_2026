@@ -3,15 +3,6 @@
 
 extern CAN_HandleTypeDef hcan;
 
-static int32_t protocolReadInt32Be(const uint8_t *data)
-{
-    uint32_t value = ((uint32_t)data[0] << 24) |
-                     ((uint32_t)data[1] << 16) |
-                     ((uint32_t)data[2] << 8) |
-                     (uint32_t)data[3];
-    return (int32_t)value;
-}
-
 static void protocolWriteInt16Be(uint8_t *data, int16_t value)
 {
     uint16_t raw = (uint16_t)value;
@@ -50,11 +41,11 @@ void appProtocolParse(uint32_t msg_id, const uint8_t *rx_buffer)
     {
         ProtocolControlFrame ctrl_frame;
 
-        ctrl_frame.pitch_target_position_ = protocolReadInt32Be(&rx_buffer[0]);
-        ctrl_frame.yaw_target_position_ = protocolReadInt32Be(&rx_buffer[4]);
+        ctrl_frame.pitch_target_speed_rpm_ = (int16_t)(((uint16_t)rx_buffer[0] << 8) | rx_buffer[1]);
+        ctrl_frame.yaw_target_speed_rpm_ = (int16_t)(((uint16_t)rx_buffer[4] << 8) | rx_buffer[5]);
 
-        appControlSetTargetPosition(MOTOR_PITCH, ctrl_frame.pitch_target_position_);
-        appControlSetTargetPosition(MOTOR_YAW, ctrl_frame.yaw_target_position_);
+        appControlSetTargetSpeed(MOTOR_PITCH, (float)ctrl_frame.pitch_target_speed_rpm_);
+        appControlSetTargetSpeed(MOTOR_YAW, (float)ctrl_frame.yaw_target_speed_rpm_);
     }
 }
 

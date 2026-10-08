@@ -128,6 +128,9 @@ void appControlLoop(void)
             target_speed = debug_data.motor[i].debug_target_speed_rpm;
         }
 
+        if (target_speed > MOTOR_MAX_TARGET_RPM) target_speed = MOTOR_MAX_TARGET_RPM;
+        if (target_speed < -MOTOR_MAX_TARGET_RPM) target_speed = -MOTOR_MAX_TARGET_RPM;
+
         active_target_speeds[i] = target_speed;
         
         bspEncoderUpdate(enc_id);

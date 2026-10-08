@@ -28,6 +28,27 @@ node <skill-dir>/scripts/read.js --workspace <workspace> --variables Tick,sinx
 
 Use `--list` only after a missing or ambiguous name. DWARF paths support members and array selections such as `sensor.pos.y`, `buf[0]`, `buf[1:5]`, and `buf[*]`. Whole composites return a reporting tree and cannot be trended.
 
+C++ names can contain `::`; quote qualified paths such as `"app::sensor.pos.y"`. Prefer an
+exact ELF/linkage name when a display name is ambiguous. Explicit scalar suffixes use a
+single colon (`"app::counter:u32"`). Missing or ambiguous C++ DWARF types must remain
+unavailable; do not guess a scalar encoding from object size. `--list` is a local raw ELF
+symbol inventory (names may be mangled and `inferredType` is only a size hint), not DWARF
+type validation. Avoid legacy `--elf`/`--port` direct Tcl reads for C++ objects because they
+bypass extension type binding.
+
+The current runtime reader also resolves supported libstdc++ storage, references, typed
+pointer/member paths and supported virtual/dynamic layouts from the selected ELF's DWARF.
+For example, request `"app::values[1]"` or `"owner->nested->value"`; storage addresses are
+resolved anew on each sample. Reads require verified memory ranges and are bounded to
+4096 bytes, 32 reads and a time budget per cycle, with bounded depth/nodes. Container trees
+may be partial, and whole objects cannot be scalar trends; request a supported scalar leaf.
+`LIVE_OBJECT_CHANGED` means a descriptor changed during the read, so that sample is invalid;
+`LIVE_ADDRESS_NOT_RAM`, `LIVE_LAYOUT_UNSUPPORTED`, null/cycle and budget diagnostics must
+remain unavailable, not be bypassed with an explicit scalar suffix or direct Tcl read.
+Running multi-read observations are not atomic snapshots. For task-local variables or
+GDB's paused object presentation and paging, read
+[../../mcu-debug-control/references/paused-inspection.md](../../mcu-debug-control/references/paused-inspection.md).
+
 For trends, use `--trend`; it defaults to ten samples. EmberProbe reuses an existing compatible connection or owns and releases a temporary sampling session:
 
 ```bash
@@ -35,6 +56,8 @@ node <skill-dir>/scripts/read.js --workspace <workspace> --variables counter --t
 ```
 
 Use `--add-to sidebar|chart|both` only when the user asks to update the EmberProbe UI. Adding does not start sampling. Export an open chart's real history with `--export-csv`; prefer `--last <seconds>` or complete ISO 8601 UTC timestamps, and keep `--output` relative to the workspace:
+
+Agent CSV reads the chart's full sampling archive. Column headers include the decoded type so history remains clear if a watch's type changes. Results larger than 64 MiB are rejected explicitly; use the chart's archive export dialog for larger files. `historyTruncated: true` means the archive hit its size cap and stopped recording while the chart kept drawing, so the CSV covers less than the requested range: compare `from`/`to` with what was asked and report the gap instead of presenting the rows as complete.
 
 ```bash
 node <skill-dir>/scripts/read.js --workspace <workspace> --export-csv --variables counter,temperature --last 30 --output exports/live.csv

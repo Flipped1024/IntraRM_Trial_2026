@@ -260,5 +260,10 @@ void USART3_IRQHandler(void)
   /* USER CODE END USART3_IRQn 1 */
 }
 
+void EXTI15_10_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
+}
+
 /* USER CODE BEGIN 1 */
 /* USER CODE END 1 */

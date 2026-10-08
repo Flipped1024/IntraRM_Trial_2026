@@ -3,25 +3,28 @@
 
 Breakpoint=D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Bsp/bsp_can.c:44, State=BP_STATE_DISABLED
 GraphedExpression="((debug_data).motor[0]).current_speed_rpm", Color=#e56a6f, Show=0
-GraphedExpression="((debug_data).motor[1]).current_speed_rpm", Color=#35792b
+GraphedExpression="((debug_data).motor[1]).current_speed_rpm", Color=#35792b, Show=0
 GraphedExpression="((debug_data).motor[1]).raw_speed_rpm", Color=#769dda, Show=0
-OpenDocument="stm32f1xx_it.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Core/Src/stm32f1xx_it.c", Line=83
+GraphedExpression="((debug_data).motor[1]).debug_target_angle_deg", Color=#b14f0d
+GraphedExpression="((debug_data).motor[1]).current_pos_angle_deg", Color=#b3c38e
+OpenDocument="app_debug.h", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/App/app_debug.h", Line=0
 OpenDocument="startup_stm32f103x6.s", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/startup_stm32f103x6.s", Line=54
 OpenDocument="main.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Core/Src/main.c", Line=72
 OpenDocument="app_protocol.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/App/app_protocol.c", Line=27
 OpenDocument="bsp_can.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Bsp/bsp_can.c", Line=27
-OpenDocument="app_debug.h", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/App/app_debug.h", Line=0
+OpenDocument="stm32f1xx_it.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Core/Src/stm32f1xx_it.c", Line=83
 OpenDocument="bsp_motor.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Yaw_Pitch_Motor_Driver/Bsp/bsp_motor.c", Line=11
 OpenToolbar="Debug", Floating=0, x=0, y=0
-OpenWindow="Source Files", DockArea=LEFT, x=0, y=1, w=426, h=415, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=1, w=426, h=410, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=0, w=1554, h=173, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 OpenWindow="Watched Data 1", DockArea=BOTTOM, x=0, y=0, w=1005, h=337, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 OpenWindow="Data Sampling", DockArea=BOTTOM, x=1, y=0, w=1554, h=337, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
-OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=1554, h=609, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="5 s / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="38;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="1384;0", CodeGraphLegendShown=0, CodeGraphLegendPosition="1390;0"
-OpenWindow="Console", DockArea=LEFT, x=0, y=0, w=426, h=193, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Timeline", DockArea=RIGHT, x=0, y=1, w=1554, h=435, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="5 s", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="38;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="1384;0", CodeGraphLegendShown=0, CodeGraphLegendPosition="1390;0"
+OpenWindow="Console", DockArea=LEFT, x=0, y=0, w=426, h=198, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
 TableHeader="Source Files", SortCol="File", SortOrder="ASCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[353;146;118;146;710]
-TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" ((debug_data).motor[0]).current_speed_rpm";" ((debug_data).motor[1]).current_speed_rpm";" ((debug_data).motor[1]).raw_speed_rpm"], ColWidths=[100;100;100;100;100]
-TableHeader="Data Sampling Setup", SortCol="Max", SortOrder="DESCENDING", VisibleCols=["Expression";"Type";"Value";"Average";"Min";"Max";"# Changes";"Min. Change";"Max. Change"], ColWidths=[508;100;112;112;100;100;100;100;322]
+TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" ((debug_data).motor[0]).current_speed_rpm";" ((debug_data).motor[1]).current_speed_rpm";" ((debug_data).motor[1]).raw_speed_rpm";" ((debug_data).motor[1]).debug_target_angle_deg";" ((debug_data).motor[1]).current_pos_angle_deg"], ColWidths=[100;100;100;100;100;100;100]
+TableHeader="Data Sampling Setup", SortCol="Max", SortOrder="DESCENDING", VisibleCols=["Expression";"Type";"Value";"Average";"Min";"Max";"# Changes";"Min. Change";"Max. Change"], ColWidths=[508;100;112;105;100;100;100;100;329]
 TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
 TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[452;254;100;182]
 TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]

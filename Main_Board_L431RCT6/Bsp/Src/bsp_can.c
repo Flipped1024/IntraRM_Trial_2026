@@ -32,10 +32,10 @@ void canInit(CAN_HandleTypeDef *hcan)
     }
 
     can_filter_config.FilterBank          = 1;
-    can_filter_config.FilterIdHigh        = CAN_ID_GIMBAL_FEEDBACK << 5;
-    can_filter_config.FilterIdLow         = CAN_ID_GIMBAL_FEEDBACK << 5;
-    can_filter_config.FilterMaskIdHigh    = CAN_ID_GIMBAL_FEEDBACK << 5;
-    can_filter_config.FilterMaskIdLow     = CAN_ID_GIMBAL_FEEDBACK << 5;
+    can_filter_config.FilterIdHigh        = CAN_ID_YAW_PITCH_SPEED << 5;
+    can_filter_config.FilterIdLow         = CAN_ID_YAW_PITCH_POS << 5;
+    can_filter_config.FilterMaskIdHigh    = CAN_ID_YAW_PITCH_SPEED << 5;
+    can_filter_config.FilterMaskIdLow     = CAN_ID_YAW_PITCH_POS << 5;
 
     status = HAL_CAN_ConfigFilter(hcan, &can_filter_config);
     if (status != HAL_OK) {

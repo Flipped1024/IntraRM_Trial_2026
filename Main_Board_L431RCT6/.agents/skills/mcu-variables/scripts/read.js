@@ -113,7 +113,9 @@ function variableSpecs(value) {
                 if (!trimmed) throw new Error("Variable name is required");
                 return { name: trimmed };
             }
-            const split = trimmed.lastIndexOf(":");
+            // C++ 限定名中的 :: 是名字的一部分，只有单个冒号才分隔显式类型。
+            const lastColon = trimmed.lastIndexOf(":");
+            const split = lastColon > 0 && trimmed[lastColon - 1] !== ":" ? lastColon : -1;
             const name = (split > 0 ? trimmed.slice(0, split) : trimmed).trim();
             const type = split > 0 ? trimmed.slice(split + 1).trim() : "";
             if (!name) throw new Error("Variable name is required");
@@ -459,7 +461,7 @@ async function main() {
         const variables = bridgeVariables || variableSpecs(opt.variables);
         if (!variables.length) throw new Error("Pass --variables name[:type],...");
         const count = boundedInteger(opt.count, 10, 2, 1000, "--count");
-        const intervalMs = boundedInteger(opt.interval, 200, 20, 60000, "--interval");
+        const intervalMs = boundedInteger(opt.interval, 200, 5, 60000, "--interval");
         const result = await call(
             workspace,
             "variables.sample",
@@ -492,7 +494,7 @@ async function main() {
     if (opt.count !== undefined && !opt.list && !opt.elf && !opt.port) {
         const variables = bridgeVariables || variableSpecs(opt.variables);
         const count = boundedInteger(opt.count, 1, 1, 1000, "--count");
-        const intervalMs = boundedInteger(opt.interval, 200, 20, 60000, "--interval");
+        const intervalMs = boundedInteger(opt.interval, 200, 5, 60000, "--interval");
         const result = await call(
             workspace,
             "variables.sample",

@@ -5,6 +5,9 @@
 static PidController position_pid_motors[CONTROL_MOTOR_NUM];
 static PidController speed_pid_motors[CONTROL_MOTOR_NUM];
 static volatile int32_t target_positions[CONTROL_MOTOR_NUM] = {0, 0};
+static volatile float target_speeds_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
+static volatile uint32_t yaw_command_tick;
+static volatile uint8_t yaw_command_received;
 static float filtered_speed_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
 static float raw_speed_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
 
@@ -126,6 +129,17 @@ void appControlSetTargetPosition(MotorIdType motor_id, int32_t position)
     }
 }
 
+void appControlSetTargetSpeed(MotorIdType motor_id, float speed_rpm)
+{
+    if (motor_id < CONTROL_MOTOR_NUM) {
+        target_speeds_rpm[motor_id] = speed_rpm;
+        if (motor_id == MOTOR_YAW) {
+            yaw_command_tick = HAL_GetTick();
+            yaw_command_received = 1U;
+        }
+    }
+}
+
 void appControlLoop(void)
 {
     for (uint8_t i = 0; i < CONTROL_MOTOR_NUM; i++)
@@ -147,7 +161,7 @@ void appControlLoop(void)
         bspEncoderUpdate(enc_id);
         int16_t delta_pulse = bspGetEncoderDeltaPulse(enc_id);
         int32_t current_position = bspGetEncoderTotalPulse(enc_id);
-        raw_speed_rpm[i] = (float)delta_pulse * PULSE_TO_RPM_COEF;
+        raw_speed_rpm[i] = (float)delta_pulse * bspMotorPulseToRpm((MotorIdType)i);
 
         float filter_alpha = debug_data.spd_filter_alpha;
         if (filter_alpha <= 0.0f)
@@ -165,7 +179,12 @@ void appControlLoop(void)
         float position_target_pulse = (float)target_positions[i];
         float target_speed_rpm;
 
-        if (debug_data.debug_mode == 1U)
+        if ((i == MOTOR_YAW || i == MOTOR_PITCH) && debug_data.debug_mode != 1U) {
+            target_speed_rpm = target_speeds_rpm[i];
+            if (!yaw_command_received || (uint32_t)(HAL_GetTick() - yaw_command_tick) > 150U) {
+                target_speed_rpm = 0.0f;
+            }
+        } else if (debug_data.debug_mode == 1U)
         {
             /* Ozone debug mode: use the editable target directly as the
              * speed-loop setpoint, while retaining encoder feedback and the
@@ -178,7 +197,7 @@ void appControlLoop(void)
             {
                 position_target_pulse =
                     debug_data.motor[i].debug_target_angle_deg *
-                    (PULSES_PER_SHAFT_REV / 360.0f);
+                    (bspMotorPulsesPerShaftRev((MotorIdType)i) / 360.0f);
             }
 
             target_speed_rpm = pidCalculate(&position_pid_motors[i],
@@ -187,7 +206,6 @@ void appControlLoop(void)
         }
         float output = pidCalculate(&speed_pid_motors[i],
                                     filtered_speed_rpm[i], target_speed_rpm);
-
         bspMotorSetSpeed((MotorIdType)i, (int32_t)output);
     }
 
@@ -208,7 +226,7 @@ void appControlGetDebugData(volatile DebugData *debug)
         {
             debug->motor[i].target_pos_pulse = (int32_t)(
                 debug_data.motor[i].debug_target_angle_deg *
-                (PULSES_PER_SHAFT_REV / 360.0f));
+                (bspMotorPulsesPerShaftRev((MotorIdType)i) / 360.0f));
         }
         else
         {
@@ -216,10 +234,10 @@ void appControlGetDebugData(volatile DebugData *debug)
         }
         debug->motor[i].current_pos_pulse = bspGetEncoderTotalPulse(enc_id);
         debug->motor[i].current_pos_rev =
-            (float)debug->motor[i].current_pos_pulse / PULSES_PER_SHAFT_REV;
+            (float)debug->motor[i].current_pos_pulse / bspMotorPulsesPerShaftRev((MotorIdType)i);
         debug->motor[i].current_pos_angle_deg =
             (float)debug->motor[i].current_pos_pulse *
-            (360.0f / PULSES_PER_SHAFT_REV);
+            (360.0f / bspMotorPulsesPerShaftRev((MotorIdType)i));
         debug->motor[i].pos_error = position_pid_motors[i].error_;
         debug->motor[i].pos_output = position_pid_motors[i].output_;
         debug->motor[i].target_speed_rpm = speed_pid_motors[i].target_;

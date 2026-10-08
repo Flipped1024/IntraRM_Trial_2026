@@ -13,6 +13,109 @@ function normalizeTransport(value = "auto") {
     return value;
 }
 
+// Cortex-Debug 1.12.1 lists these OpenOCD names, plus "none" so a workspace can explicitly opt out
+// even when the target .cfg already sets -rtos. The bundled xPack OpenOCD 0.12.0-7 also compiles
+// hwthread and rtkernel; both are deliberately withheld because hwthread reports a single unnamed
+// thread and rtkernel is RTEMS-only, so either looks like a bug when picked by accident.
+// Names are case-sensitive: OpenOCD compares them with strcmp, so never lowercase the input.
+const OPENOCD_RTOS_NAMES = Object.freeze([
+    "auto",
+    "none",
+    "FreeRTOS",
+    "ThreadX",
+    "chibios",
+    "Chromium-EC",
+    "eCos",
+    "embKernel",
+    "linux",
+    "mqx",
+    "nuttx",
+    "RIOT",
+    "uCOS-III",
+    "Zephyr"
+]);
+
+function normalizeRtos(value = "") {
+    if (value === undefined || value === null) return "";
+    const name = typeof value === "string" ? value.trim() : String(value);
+    // An empty value turns RTOS awareness off, which is distinct from "none" (tell OpenOCD
+    // explicitly). Anything else must be an allow-listed name; non-strings never are.
+    if (name === "" && typeof value === "string") return "";
+    if (!OPENOCD_RTOS_NAMES.includes(name)) {
+        // A bare ${name} renders as nothing for values such as [], which reads as a broken sentence.
+        const shown = name ? `"${name}"` : `${JSON.stringify(value)} (normalizes to an empty name)`;
+        throw Object.assign(
+            new Error(`Unsupported OpenOCD RTOS: ${shown}. Expected one of: ${OPENOCD_RTOS_NAMES.join(", ")}`),
+            { code: "OPENOCD_RTOS_INVALID" }
+        );
+    }
+    return name;
+}
+
+// OpenOCD needs -rtos on the *current* target after the target config is loaded and before init,
+// which is what Cortex-Debug's CDRTOSConfigure does. Unlike Cortex-Debug this raises a Tcl error
+// instead of logging to stderr, so OpenOCD exits non-zero and the caller's existing startup
+// cleanup reports the failure instead of silently degrading to a non-RTOS session.
+// The interpolated name is normalizeRtos's return value, so it can only be an allow-listed member
+// matching /^[A-Za-z0-9-]+$/ -- no Tcl metacharacter can reach the command string.
+function buildOpenOcdRtosArgs(rtos, allTargets = false) {
+    const name = normalizeRtos(rtos);
+    if (!name) return [];
+    if (allTargets)
+        return ["-c", `foreach _ep_rtos_target [target names] { $_ep_rtos_target configure -rtos ${name} }`];
+    return [
+        "-c",
+        `set _ep_rtos_target ""; catch { set _ep_rtos_target [target current] }; ` +
+            `if { $_ep_rtos_target eq "" } { error "EmberProbe: no current target to configure for RTOS ${name}" }; ` +
+            `$_ep_rtos_target configure -rtos ${name}`
+    ];
+}
+
+// A core is an OpenOCD target, not an RTOS thread. Keep absent fields absent so
+// existing single-target launches retain their command stream.
+/** @returns {{numberOfProcessors?: number, targetProcessor?: number, targetName?: string}} */
+function normalizeTargetSelection(config = {}) {
+    const keys = ["numberOfProcessors", "targetProcessor", "targetName"];
+    if (keys.every((key) => config[key] === undefined)) return {};
+    const count = config.numberOfProcessors ?? 1;
+    const core = config.targetProcessor ?? 0;
+    if (!Number.isInteger(count) || count < 1 || count > 32 || !Number.isInteger(core) || core < 0 || core >= count)
+        throw Object.assign(new Error("OpenOCD core selection requires 1..32 processors and an in-range core index"), {
+            code: "OPENOCD_TARGET_INVALID"
+        });
+    const name = config.targetName;
+    if (name !== undefined && (typeof name !== "string" || !/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(name)))
+        throw Object.assign(new Error("targetName must be an OpenOCD target identifier"), {
+            code: "OPENOCD_TARGET_INVALID"
+        });
+    return { numberOfProcessors: count, targetProcessor: core, ...(name === undefined ? {} : { targetName: name }) };
+}
+
+function buildOpenOcdTargetArgs(config, ports) {
+    const selection = normalizeTargetSelection(config);
+    if (!selection.numberOfProcessors) return [];
+    const { numberOfProcessors: count, targetProcessor: core, targetName: name } = selection;
+    if (
+        !Array.isArray(ports) ||
+        ports.length !== count ||
+        new Set(ports).size !== count ||
+        ports.some((port) => !Number.isInteger(port) || port < 1 || port > 65535)
+    )
+        throw Object.assign(new Error("Each OpenOCD target requires a distinct GDB port"), {
+            code: "OPENOCD_TARGET_PORT_INVALID"
+        });
+    return [
+        "-c",
+        "set _ep_core_targets [target names]; " +
+            `if { [llength $_ep_core_targets] != ${count} } { error "EmberProbe: configured processor count does not match OpenOCD targets" }; ` +
+            (name
+                ? `if { [lindex $_ep_core_targets ${core}] ne "${name}" } { error "EmberProbe: targetName does not match targetProcessor" }; `
+                : "") +
+            ports.map((port, index) => `[lindex $_ep_core_targets ${index}] configure -gdb-port ${port}; `).join("") +
+            `targets [lindex $_ep_core_targets ${core}]`
+    ];
+}
+
 function buildOpenOcdConfigArgs(launch, transport = "auto", connection = {}) {
     normalizeTransport(transport);
     const serial = normalizeProbeSerial(connection.probeSerial);
@@ -207,7 +310,12 @@ function discoverInterfaceConfigs(executable) {
 
 module.exports = {
     normalizeTransport,
+    normalizeRtos,
+    OPENOCD_RTOS_NAMES,
     buildOpenOcdConfigArgs,
+    buildOpenOcdRtosArgs,
+    normalizeTargetSelection,
+    buildOpenOcdTargetArgs,
     isSafeCfgPath,
     resolveExecutablePath,
     scriptsRootCandidates,

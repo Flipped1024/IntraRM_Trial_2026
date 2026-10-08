@@ -22,12 +22,12 @@ void OnProjectLoad (void) {
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6", "$(ProjectDir)");
-  Project.AddPathSubstitute ("d:/robomaster/intrarm_trial_2026/main_board_l431rct6", "$(ProjectDir)");
   Project.SetDevice ("STM32L431RC");
   Project.SetHostIF ("USB", "20741223");
   Project.SetTargetIF ("SWD");
   Project.SetTIFSpeed ("4 MHz");
+  Project.AddPathSubstitute ("D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6", "$(ProjectDir)");
+  Project.AddPathSubstitute ("d:/robomaster/intrarm_trial_2026/main_board_l431rct6", "$(ProjectDir)");
   Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M4F.svd");
   //
   // User settings

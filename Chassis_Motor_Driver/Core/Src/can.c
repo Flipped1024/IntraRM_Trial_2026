@@ -38,10 +38,9 @@ void MX_CAN_Init(void)
 
   /* USER CODE END CAN_Init 1 */
   hcan.Instance = CAN1;
-  /* 72 MHz CAN kernel clock, 1 + 14 + 3 = 18 time quanta:
-   * 72 MHz / (8 * 18) = 500 kbit/s.  The previous prescaler 4 made this
-   * board run at 1 Mbit/s despite the IOC/README claiming 500 kbit/s. */
-  hcan.Init.Prescaler = 8;
+  /* APB1 CAN clock is 36 MHz with the current F103 clock tree.
+   * 36 MHz / (4 * (1 + 14 + 3)) = 500 kbit/s. */
+  hcan.Init.Prescaler = 4;
   hcan.Init.Mode = CAN_MODE_NORMAL;
   hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan.Init.TimeSeg1 = CAN_BS1_14TQ;

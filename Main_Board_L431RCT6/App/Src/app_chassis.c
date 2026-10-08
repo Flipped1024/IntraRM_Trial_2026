@@ -36,12 +36,16 @@ void chassisUpdate(Chassis *chassis)
     float R  = chassis->wheel_radius_;
     float Lc = chassis->radius_;
 
+    /* Body axes: vx right, vy forward, vw CCW; four tangential 45-degree
+     * omni wheels.  In CAN slot order [FL, RL, RR, FR], right is [+,-,-,+],
+     * forward is [+,+,-,-], and CCW is [-,-,-,-].  These are projections
+     * of rigid-body wheel-point velocity, not arbitrary axis permutations. */
     float omega_FL = -((M_SQRT2 / 2.0f * (-vx - vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
     float omega_FR = -((M_SQRT2 / 2.0f * (-vx + vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
-    float omega_RL = -((M_SQRT2 / 2.0f * (vx + vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
-    float omega_RR = -((M_SQRT2 / 2.0f * (vx - vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
+    float omega_RL = -((M_SQRT2 / 2.0f * ( vx - vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
+    float omega_RR = -((M_SQRT2 / 2.0f * ( vx + vy) + Lc * vw) / R * CHASSIS_RPM_CONVERT);
 
-    /* Keep all four commands within the motor's measured 178 rpm limit while
+    /* Keep all four commands within the protected 120 rpm limit while
      * preserving the direction and speed ratio of the current chassis mix. */
     float max_abs_speed = fabsf(omega_FL);
     float scale;
@@ -64,27 +68,38 @@ void chassisUpdate(Chassis *chassis)
         omega_RR *= scale;
     }
 
-    /* 实际接线：驱动板 1 控制左前、右前。 */
+    /* 实际接线：驱动板 1 控制左前、左后。 */
     chassis->motor_cmds_[0].motor1_speed_ = (int16_t)omega_FL;
-    chassis->motor_cmds_[0].motor2_speed_ = (int16_t)omega_FR;
-    /* 实际接线：驱动板 2 控制左后、右后。 */
-    chassis->motor_cmds_[1].motor1_speed_ = (int16_t)omega_RL;
-    chassis->motor_cmds_[1].motor2_speed_ = (int16_t)omega_RR;
+    chassis->motor_cmds_[0].motor2_speed_ = (int16_t)omega_RL;
+    /* 实际接线：驱动板 2 控制右后、右前。 */
+    chassis->motor_cmds_[1].motor1_speed_ = (int16_t)omega_RR;
+    chassis->motor_cmds_[1].motor2_speed_ = (int16_t)omega_FR;
 }
 
 void chassisSendCmd(const Chassis *chassis)
 {
     HAL_StatusTypeDef status;
+    MotorCmd limited_board1 = chassis->motor_cmds_[0];
+    MotorCmd limited_board2 = chassis->motor_cmds_[1];
+
+    if (limited_board1.motor1_speed_ > (int16_t)CHASSIS_MAX_SPEED_RPM) limited_board1.motor1_speed_ = (int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board1.motor1_speed_ < -(int16_t)CHASSIS_MAX_SPEED_RPM) limited_board1.motor1_speed_ = -(int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board1.motor2_speed_ > (int16_t)CHASSIS_MAX_SPEED_RPM) limited_board1.motor2_speed_ = (int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board1.motor2_speed_ < -(int16_t)CHASSIS_MAX_SPEED_RPM) limited_board1.motor2_speed_ = -(int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board2.motor1_speed_ > (int16_t)CHASSIS_MAX_SPEED_RPM) limited_board2.motor1_speed_ = (int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board2.motor1_speed_ < -(int16_t)CHASSIS_MAX_SPEED_RPM) limited_board2.motor1_speed_ = -(int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board2.motor2_speed_ > (int16_t)CHASSIS_MAX_SPEED_RPM) limited_board2.motor2_speed_ = (int16_t)CHASSIS_MAX_SPEED_RPM;
+    if (limited_board2.motor2_speed_ < -(int16_t)CHASSIS_MAX_SPEED_RPM) limited_board2.motor2_speed_ = -(int16_t)CHASSIS_MAX_SPEED_RPM;
 
     /* Keep the exact four normal-mode commands visible in Ozone. */
-    g_debug_.can_.motor_rpm_[0] = chassis->motor_cmds_[0].motor1_speed_;
-    g_debug_.can_.motor_rpm_[1] = chassis->motor_cmds_[0].motor2_speed_;
-    g_debug_.can_.motor_rpm_[2] = chassis->motor_cmds_[1].motor1_speed_;
-    g_debug_.can_.motor_rpm_[3] = chassis->motor_cmds_[1].motor2_speed_;
+    g_debug_.can_.motor_rpm_[0] = limited_board1.motor1_speed_;
+    g_debug_.can_.motor_rpm_[1] = limited_board1.motor2_speed_;
+    g_debug_.can_.motor_rpm_[2] = limited_board2.motor1_speed_;
+    g_debug_.can_.motor_rpm_[3] = limited_board2.motor2_speed_;
 
-    status = protocolSendBoardCmd(1, &chassis->motor_cmds_[0]);
+    status = protocolSendBoardCmd(1, &limited_board1);
     debugUpdateCanTx(status);
-    status = protocolSendBoardCmd(2, &chassis->motor_cmds_[1]);
+    status = protocolSendBoardCmd(2, &limited_board2);
     debugUpdateCanTx(status);
     debugUpdateCanState();
 }
@@ -93,6 +108,32 @@ void chassisProcessFeedback(Chassis *chassis, uint32_t can_id, const uint8_t *da
 {
     protocolProcessCanMessage(can_id, data,
                               &chassis->motor_fb_[0], &chassis->motor_fb_[1]);
+
+    /* Mirror decoded feedback into the Ozone-visible diagnostic object. */
+    g_debug_.can_.motor_delta_pulse_[0] =
+        chassis->motor_fb_[0].motor1_delta_pulse_;
+    g_debug_.can_.motor_delta_pulse_[1] =
+        chassis->motor_fb_[0].motor2_delta_pulse_;
+    g_debug_.can_.motor_delta_pulse_[2] =
+        chassis->motor_fb_[1].motor1_delta_pulse_;
+    g_debug_.can_.motor_delta_pulse_[3] =
+        chassis->motor_fb_[1].motor2_delta_pulse_;
+    g_debug_.can_.motor_speed_rpm_[0] =
+        (float)g_debug_.can_.motor_delta_pulse_[0] *
+        CHASSIS_FEEDBACK_PULSE_TO_RPM;
+    g_debug_.can_.motor_speed_rpm_[1] =
+        (float)g_debug_.can_.motor_delta_pulse_[1] *
+        CHASSIS_FEEDBACK_PULSE_TO_RPM;
+    g_debug_.can_.motor_speed_rpm_[2] =
+        (float)g_debug_.can_.motor_delta_pulse_[2] *
+        CHASSIS_FEEDBACK_PULSE_TO_RPM;
+    g_debug_.can_.motor_speed_rpm_[3] =
+        (float)g_debug_.can_.motor_delta_pulse_[3] *
+        CHASSIS_FEEDBACK_PULSE_TO_RPM;
+    g_debug_.can_.motor_position_[0] = chassis->motor_fb_[0].motor1_pos_;
+    g_debug_.can_.motor_position_[1] = chassis->motor_fb_[0].motor2_pos_;
+    g_debug_.can_.motor_position_[2] = chassis->motor_fb_[1].motor1_pos_;
+    g_debug_.can_.motor_position_[3] = chassis->motor_fb_[1].motor2_pos_;
 }
 
 void chassisEmergencyStop(Chassis *chassis)

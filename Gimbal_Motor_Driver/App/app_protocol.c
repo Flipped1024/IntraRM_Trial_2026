@@ -34,13 +34,9 @@ void appProtocolParse(uint32_t msg_id, const uint8_t *rx_buffer)
 
     if (!debug_data.debug_mode)
     {
-        /*
-         * 两个摩擦轮机械安装方向相反：同一个 fric_duty 需要给 2 号取反。
-         * 结合 bsp_motor.c 的 direction_invert_ 配置，正常运行时两路方向 GPIO
-         * 按机械安装方向切换；GPIO 电平不控制转速，PWM 比较值才控制转速。
-         */
+        /* FRIC2 的方向极性统一在 bsp_motor.c 的 direction_invert_ 中处理。 */
         bspMotorSetDuty(MOTOR_370_FRIC1, ctrl_frame.fric_duty_);
-        bspMotorSetDuty(MOTOR_370_FRIC2, -ctrl_frame.fric_duty_);
+        bspMotorSetDuty(MOTOR_370_FRIC2, ctrl_frame.fric_duty_);
         bspMotorSetDuty(MOTOR_N20_FEED, ctrl_frame.feed_duty_);
     }
 }

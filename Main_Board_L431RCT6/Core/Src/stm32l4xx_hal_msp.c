@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -75,6 +76,22 @@ void HAL_MspInit(void)
 
   /* USER CODE END MspInit 1 */
 }
+
+void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if (hi2c->Instance == I2C2) {
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_I2C2_CLK_ENABLE();
+    GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_14;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  }
+}
+
 
 /* USER CODE BEGIN 1 */
 

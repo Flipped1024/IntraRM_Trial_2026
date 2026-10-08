@@ -1,0 +1,13 @@
+../Core/Extend/C_Cpp/MPU6050.c:13:13:mpu6050_write_reg	1
+../Core/Extend/C_Cpp/MPU6050.c:19:9:mpu6050_read_reg	1
+../Core/Extend/C_Cpp/MPU6050.c:26:6:mpu6050_read_reg_continue	1
+../Core/Extend/C_Cpp/MPU6050.c:137:15:MPU6050_SoftCalibrate_Z	6
+../Core/Extend/C_Cpp/MPU6050.c:194:13:MPU6050_Register_init	13
+../Core/Extend/C_Cpp/MPU6050.c:254:13:MPU6050_Get_Raw	1
+../Core/Extend/C_Cpp/MPU6050.c:301:21:invSqrt	1
+../Core/Extend/C_Cpp/MPU6050.c:318:6:MPU6050_init	3
+../Core/Extend/C_Cpp/MPU6050.c:354:7:MPU6050_GetTemp	1
+../Core/Extend/C_Cpp/MPU6050.c:361:6:MPU6050_Get_Angle	2
+../Core/Extend/C_Cpp/MPU6050.c:399:6:MPU6050_Get_Angle_Plus	11
+../Core/Extend/C_Cpp/MPU6050.c:516:6:MPU6050_Set_Angle0	2
+../Core/Extend/C_Cpp/MPU6050.c:525:9:MPU6050_ID	1

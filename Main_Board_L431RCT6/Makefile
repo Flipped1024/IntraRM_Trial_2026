@@ -38,6 +38,8 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/gpio.c \
+Core/Src/i2c.c \
+Core/Src/tim.c \
 Core/Src/can.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
@@ -67,6 +69,7 @@ App/Src/app_protocol.c \
 App/Src/app_remote.c \
 Bsp/Src/bsp_can.c \
 Bsp/Src/bsp_tim.c \
+Bsp/Src/bsp_mpu6050.c \
 Bsp/Src/bsp_uart.c \
 Bsp/Src/bsp_usart_idle.c \
 Core/Src/dma.c \

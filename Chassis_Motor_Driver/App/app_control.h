@@ -16,6 +16,7 @@ typedef struct DebugData DebugData;
 #define MOTOR_SPEED_PID_KD 10.0f
 #define MOTOR_SPEED_PID_MAX_OUT MAX_PWM_VALUE
 #define MOTOR_SPEED_PID_MAX_INTEGRAL_OUT 1000.0f
+#define MOTOR_MAX_TARGET_RPM 120.0f
 #define MOTOR_SPEED_FILTER_ALPHA 0.25f
 /* PWM output per (RPM/s); tune this value on the real wheel/motor. */
 #define MOTOR_SPEED_FF_ACCEL_GAIN 1.0f

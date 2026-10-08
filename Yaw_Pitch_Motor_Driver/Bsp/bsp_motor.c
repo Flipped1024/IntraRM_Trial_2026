@@ -1,11 +1,21 @@
-#include "bsp_motor.h"
+﻿#include "bsp_motor.h"
 
 static MotorHandleType motor_list[] = {
     [MOTOR_PITCH] = {.htim_ = &htim2, .channel_in1_ = TIM_CHANNEL_1, .channel_in2_ = TIM_CHANNEL_2, .current_speed_ = 0},
     [MOTOR_YAW] = {.htim_ = &htim2, .channel_in1_ = TIM_CHANNEL_3, .channel_in2_ = TIM_CHANNEL_4, .current_speed_ = 0}};
 
+float bspMotorPulsesPerShaftRev(MotorIdType motor_id)
+{
+    return (motor_id == MOTOR_YAW) ? YAW_PULSES_PER_SHAFT_REV : PITCH_PULSES_PER_SHAFT_REV;
+}
+
+float bspMotorPulseToRpm(MotorIdType motor_id)
+{
+    return 60.0f / (CONTROL_PERIOD_S * bspMotorPulsesPerShaftRev(motor_id));
+}
+
 /**
- * @brief 初始化电机相关定时器通道
+ * @brief 鍒濆鍖栫數鏈虹浉鍏冲畾鏃跺櫒閫氶亾
  */
 void bspMotorInit(void)
 {
@@ -19,9 +29,9 @@ void bspMotorInit(void)
 }
 
 /**
- * @brief 设置电机速度与方向
- * @param motor_id 电机编号
- * @param speed 控制量范围 [-MAX_PWM_VALUE, MAX_PWM_VALUE]
+ * @brief 璁剧疆鐢垫満閫熷害涓庢柟鍚?
+ * @param motor_id 鐢垫満缂栧彿
+ * @param speed 鎺у埗閲忚寖鍥?[-MAX_PWM_VALUE, MAX_PWM_VALUE]
  */
 void bspMotorSetSpeed(MotorIdType motor_id, int32_t speed)
 {
@@ -71,3 +81,4 @@ int32_t bspMotorGetSpeed(MotorIdType motor_id)
     }
     return 0;
 }
+
