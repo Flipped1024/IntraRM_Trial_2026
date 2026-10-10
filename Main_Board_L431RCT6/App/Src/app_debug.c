@@ -1,6 +1,7 @@
 #include "app_debug.h"
 #include "bsp_can.h"
 #include "app_protocol.h"
+#include "app_gimbal.h"
 
 DebugData g_debug_;
 
@@ -28,6 +29,18 @@ void debugInit(void)
     g_debug_.gimbal_.fire_active_ = 0;
     g_debug_.gimbal_.fric_duty_ = 999;
     g_debug_.gimbal_.feed_duty_ = 0;
+    g_debug_.gimbal_.pitch_open_loop_duty_ = GIMBAL_PITCH_OPEN_LOOP_DUTY;
+    g_debug_.gimbal_.yaw_open_loop_duty_ = GIMBAL_YAW_OPEN_LOOP_DUTY;
+    g_debug_.gimbal_.pitch_brake_duty_ = 200;
+    g_debug_.gimbal_.yaw_brake_duty_ = 999;
+    g_debug_.gimbal_.pseudo_closed_loop_enable_ = 1U;
+    g_debug_.gimbal_.pseudo_drive_ms_ = 100U;
+    g_debug_.gimbal_.pseudo_brake_ms_ = 10U;
+    g_debug_.gimbal_.pseudo_brake_ratio_ = 0.20f;
+    g_debug_.gimbal_.pitch_pseudo_active_ = 0U;
+    g_debug_.gimbal_.pitch_pseudo_brake_phase_ = 0U;
+    g_debug_.gimbal_.yaw_pseudo_active_ = 0U;
+    g_debug_.gimbal_.yaw_pseudo_brake_phase_ = 0U;
 
     for (i = 0; i < 4; i++) {
         g_debug_.can_.motor_rpm_[i] = 0;

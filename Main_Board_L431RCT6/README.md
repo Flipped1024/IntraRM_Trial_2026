@@ -199,3 +199,7 @@ MPU6050 使用 I2C2：PB13=SCL、PB14=SDA、PB12=INT；AD0 接地时地址为 `0
 MPU6050 驱动已按 `MPU6050例程(HAL库版本)` 的 `MPU6050_Get_Angle_Plus` 路径移植：四元数积分、重力方向 Mahony 校正、PT1 低通和 ±4 g/±2000 dps 量程；当前主循环按 10 ms 调用，故配置为 100 Hz。`g_debug_.imu_.quat_[]` 可直接核对四元数，`yaw_euler_deg_` 是 ±180° 范围内的四元数航向，`yaw_deg_` 是跨越 ±180° 后仍连续累计的航向。MPU6050 没有磁力计，因此 `yaw_deg_` 仍会漂移，不能作为长期绝对航向；底盘航向锁定还需要外部航向基准或定期重置零点。编译通过只证明固件路径正确，实际 I2C ACK、温度变化和姿态方向仍需在板上用 Ozone 及示波器/逻辑分析仪验证。
 
 拨弹/摩擦轮板使用 `0x113`：字节 4–5 为大端 `fric_duty`，字节 6–7 为大端 `feed_duty`；Yaw/Pitch 双轴板使用 `0x114` 下发两个大端 `int16_t` 速度目标。Yaw/Pitch 反馈为 `0x208`（两轴 10 ms 编码器增量）和 `0x209`（两轴累计编码器位置）。
+
+云台伪闭环参数位于 g_debug_.gimbal_：pseudo_closed_loop_enable_、pseudo_drive_ms_、pseudo_brake_ms_、pseudo_brake_ratio_，并可观察 pitch_pseudo_active_、pitch_pseudo_brake_phase_、yaw_pseudo_active_、yaw_pseudo_brake_phase_。
+
+云台实时 duty 调节：Ozone 可直接修改 g_debug_.gimbal_.pitch_open_loop_duty_、yaw_open_loop_duty_、pitch_brake_duty_、yaw_brake_duty_，范围会限制在 0 到 999；修改在下一个 10 ms 控制周期使用。

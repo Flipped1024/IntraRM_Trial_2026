@@ -28,7 +28,7 @@
 #define GIMBAL_YAW_STICK_RANGE 127.0f
 #define GIMBAL_YAW_MAX_SPEED_RPM 70
 #define GIMBAL_PITCH_MAX_SPEED_RPM 70
-#define GIMBAL_YAW_OPEN_LOOP_DUTY 999
+#define GIMBAL_YAW_OPEN_LOOP_DUTY 700
 #define GIMBAL_PITCH_OPEN_LOOP_DUTY 999
 #define GIMBAL_YAW_MAX_ANGLE_DEG 100.0f
 #define GIMBAL_PITCH_STICK_DEADBAND 80
@@ -64,6 +64,16 @@ typedef struct {
     int32_t yaw_center_pos_;
     uint8_t yaw_feedback_valid_;
     uint32_t yaw_feedback_tick_;
+    uint32_t pitch_pseudo_phase_tick_;
+    uint32_t yaw_pseudo_phase_tick_;
+    uint8_t pitch_pseudo_active_;
+    uint8_t pitch_pseudo_brake_phase_;
+    uint8_t pitch_pseudo_input_latched_;
+    int8_t pitch_pseudo_sign_;
+    uint8_t yaw_pseudo_active_;
+    uint8_t yaw_pseudo_brake_phase_;
+    uint8_t yaw_pseudo_input_latched_;
+    int8_t yaw_pseudo_sign_;
 
     uint8_t friction_wheels_enabled_;
     uint8_t fire_active_;
