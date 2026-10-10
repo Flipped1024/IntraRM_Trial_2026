@@ -14,6 +14,8 @@ IntraRM_Trial_2026/
    ├─ pc_protocol.h          输入状态到 14 字节帧的映射及 CRC
    ├─ pc_keybind.h           自定义按键冲突检查
    ├─ pc_ports.h             SetupAPI 串口枚举、设备描述、CH340 标识
+   ├─ assets/                原图、淡化背景 BMP、程序 ICO
+   ├─ resources.rc / resource.h
    ├─ compat/                TinyCC 缺少的 SetupAPI ABI 和 DLL 导入定义
    ├─ tests/                 HAL 替身；测试真实 app_remote.c
    ├─ build.ps1 / test.ps1
@@ -70,11 +72,23 @@ UART1 帧间字节间隔超过 20 ms 会丢弃残帧。CRC 错误采用滑动帧
 ## Windows 界面与配置
 
 - 用 `GetAsyncKeyState` 约每 20 ms 采集当前键态，仅在启用且前台时生效；启动、失焦、连接失败、发送调度间隔超过 100 ms 均停用键盘。
+- 程序入口保存当前线程键盘布局，并激活 Windows 英文键盘布局 `00000409`；窗口重新获得焦点时再次激活。退出时恢复启动前的布局，避免中文输入法状态影响 WASD、Q/E 和空格等按键。
 - `WriteFile` 使用同步串口和 30 ms 写超时；失败或部分写入即断开。连接/停用期间发送 flags=0，关闭前尝试发送一次停用帧。
 - 改键通过 `WM_KEYDOWN/WM_SYSKEYDOWN` 捕获，并区分左右 Shift/Ctrl/Alt；先停用键盘，修改后要求重新启用。保留移动键、Q/E、方向键、Esc、Windows 键；拒绝两个功能共用一个键。
 - 配置路径使用 EXE 所在目录，格式为 `[Keys]` 下的 `Fire`、`Friction`，值为十进制 Win32 VK。无配置时使用 Space / 左 Shift。非法或冲突配置回退到默认值；保存失败时仅本次有效并提示。
 - SetupAPI 按 Ports 类枚举当前设备，从设备注册表 `PortName` 取真实 COM 名称，从设备属性读取友好名称、描述和硬件 ID。CH340/CH341 名称或 `VID_1A86&PID_7523` 用于标识芯片，不能识别主控身份。没有类设备描述的 COM 口通过 `QueryDosDevice` 补充。
 - 列表的设备描述和打开串口的 COM 编号分开存储，不能把整个显示字符串传给 `CreateFile`。
+- 窗口淡背景通过 `IDB_BACKGROUND` 从 BMP 资源载入；窗口图标通过 `IDI_APP_ICON` 从 ICO 资源载入，两者已嵌入 EXE，运行不需要附带图片。
+- 程序启动独立看门线程。窗口主线程连续 5 秒没有处理窗口消息时，看门线程直接结束进程，避免驱动调用或系统窗口阻塞导致长期卡死、无法关闭。正常空闲状态由 20 ms 定时器持续更新心跳。
+
+## 运行文件清单
+
+程序资源均已编入 EXE。运行时调用 Windows 自带的 USER32、GDI32、SETUPAPI、ADVAPI32 和 C 运行库；不用另外下载或复制 DLL、Python、MinGW、TinyCC、源码、测试目录或 `.o` 文件。
+
+- **对方已安装 CH340 驱动：**最少只需发送 `RM_PC_Controller.exe`。这个 32 位程序可运行于 32 位和 64 位 Windows。
+- **对方尚未安装驱动：**再发送 `CH341SER.EXE`，让对方安装驱动并在设备管理器确认 COM 口。
+- **对方要使用已经配置好的开火和摩擦轮按键：**额外发送 `keybindings.ini`，与 EXE 放在同一目录。没有此文件时程序使用默认空格和左 Shift。
+- **主控固件：**只有烧录人员需要主控项目 `Main_Board_L431RCT6/build/Main_Board_L431RCT6.hex`；普通电脑操作者不用接收固件或 STM32 编译产物。
 
 ## 构建
 
@@ -92,6 +106,8 @@ mingw32-make -j2
 ```
 
 TinyCC 0.9.27 win32 官方发布：<https://download.savannah.nongnu.org/releases/tinycc/tcc-0.9.27-win32-bin.zip>。`compat` 中的最小 SetupAPI 声明与导入 `.def` 是其构建支持文件，运行 EXE 不需要这些文件。32 位程序只依赖 Windows 自带的 `msvcrt/setupapi/advapi32/kernel32/user32/gdi32`；x64 构建使用系统 UCRT，适用于 Windows 10/11 x64。其他系统和不同 CH340 驱动版本仍需实际兼容验证。
+
+图标和背景通过 Windows 资源编译：`resources.rc` 引用 `assets/app_icon.ico` 和 `assets/background.bmp`，`windres` 生成各架构资源 COFF 后与程序链接。重建 EXE 时保留整个 `assets/` 目录。`assets/wings_of_dream.jpg` 是原图备份，仅用于制作素材；程序运行不加载它。
 
 ## 测试
 

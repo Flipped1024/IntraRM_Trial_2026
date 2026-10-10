@@ -11,8 +11,11 @@
 #include "pc_protocol.h"
 #include "pc_keybind.h"
 #include "pc_ports.h"
+#include "resource.h"
 
 static HWND window_, ports_, speed_, connect_, arm_, status_;
+static HBITMAP background_bitmap_;
+static HBRUSH transparent_brush_;
 static HANDLE serial_ = INVALID_HANDLE_VALUE;
 static int armed_, key_state_[KEY_COUNT];
 static uint8_t sequence_;
@@ -22,6 +25,49 @@ static int vk_[KEY_COUNT] = {'W','A','S','D',VK_UP,VK_DOWN,VK_LEFT,
 static HWND fire_bind_, friction_bind_;
 static int capture_;
 static wchar_t settings_path_[MAX_PATH];
+/* Keep the layout that was active when the controller started.  The US
+ * English Windows keyboard layout is used while this process is running so
+ * letter keys are interpreted consistently even when the user started in a
+ * Chinese IME. */
+static HKL previous_keyboard_layout_;
+/* The watchdog lives on a different thread so it can terminate a process
+ * whose GUI thread is blocked inside a driver or an unexpected Win32 call. */
+#define WATCHDOG_TIMEOUT_MS 5000UL
+static volatile LONG watchdog_stop_;
+static volatile LONG main_heartbeat_tick_;
+static HANDLE watchdog_thread_;
+
+static int activate_english_keyboard(void)
+{
+    HKL english = LoadKeyboardLayoutW(L"00000409",
+                                      KLF_ACTIVATE | KLF_SETFORPROCESS);
+    if (!english) return 0;
+    return ActivateKeyboardLayout(english, KLF_SETFORPROCESS) != NULL;
+}
+
+static void restore_keyboard_layout(void)
+{
+    if (previous_keyboard_layout_)
+        ActivateKeyboardLayout(previous_keyboard_layout_, KLF_SETFORPROCESS);
+}
+
+static DWORD WINAPI watchdog_proc(LPVOID unused)
+{
+    (void)unused;
+    for (;;) {
+        Sleep(1000);
+        if (InterlockedCompareExchange(&watchdog_stop_, 0, 0) != 0)
+            return 0;
+        LONG heartbeat=(LONG)GetTickCount();
+        LONG last=InterlockedCompareExchange(&main_heartbeat_tick_,0,0);
+        if ((DWORD)(heartbeat-last) > WATCHDOG_TIMEOUT_MS) {
+            /* TerminateProcess avoids waiting for cleanup code that may hold
+             * the same lock as the unresponsive GUI thread. */
+            TerminateProcess(GetCurrentProcess(),0xDEAD);
+            return 0;
+        }
+    }
+}
 static void key_name(int vk,wchar_t out[64])
 {
     if(vk==VK_LSHIFT) { lstrcpyW(out,L"左 Shift"); return; }
@@ -154,9 +200,13 @@ static HWND control(const wchar_t *type, const wchar_t *text, DWORD style,
 }
 static LRESULT CALLBACK window_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
 {
+    if (msg != WM_NCCREATE)
+        InterlockedExchange(&main_heartbeat_tick_,(LONG)GetTickCount());
     switch (msg) {
     case WM_CREATE:
         window_ = h;
+        background_bitmap_ = LoadBitmapW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDB_BACKGROUND));
+        transparent_brush_ = CreateSolidBrush(RGB(255,255,255));
         control(L"STATIC", L"CH340 串口：", 0, 20,20,110,24,0);
         ports_ = control(L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL,130,16,590,300,10);
         control(L"BUTTON", L"刷新", BS_PUSHBUTTON,730,16,70,28,11);
@@ -175,6 +225,25 @@ static LRESULT CALLBACK window_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         control(L"BUTTON", L"停止键盘并交还手柄 (Esc)", BS_PUSHBUTTON,20,410,880,40,15);
         status_ = control(L"STATIC", L"选择CH340的COM口并连接。115200 / 8N1。",0,20,465,880,65,0);
         refresh_ports(); SetTimer(h,1,20,NULL); return 0;
+    case WM_ERASEBKGND:
+        return 1;
+    case WM_PAINT: {
+        PAINTSTRUCT ps; HDC dc=BeginPaint(h,&ps);
+        RECT client; GetClientRect(h,&client);
+        FillRect(dc,&client,transparent_brush_);
+        if (background_bitmap_) {
+            BITMAP bm; GetObjectW(background_bitmap_,sizeof(bm),&bm);
+            HDC mem=CreateCompatibleDC(dc); HGDIOBJ old=SelectObject(mem,background_bitmap_);
+            SetStretchBltMode(dc,HALFTONE);
+            StretchBlt(dc,0,0,client.right,client.bottom,mem,0,0,bm.bmWidth,bm.bmHeight,SRCCOPY);
+            SelectObject(mem,old); DeleteDC(mem);
+        }
+        EndPaint(h,&ps); return 0;
+    }
+    case WM_CTLCOLORSTATIC: {
+        HDC dc=(HDC)wp; SetBkMode(dc,TRANSPARENT); SetTextColor(dc,RGB(24,38,58));
+        return (LRESULT)transparent_brush_;
+    }
     case WM_COMMAND:
         switch (LOWORD(wp)) {
         case 11: if (serial_ == INVALID_HANDLE_VALUE) refresh_ports(); break;
@@ -224,6 +293,11 @@ static LRESULT CALLBACK window_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         break;
     case WM_ACTIVATE:
         if (LOWORD(wp) == WA_INACTIVE) stop();
+        else if (LOWORD(wp) == WA_ACTIVE || LOWORD(wp) == WA_CLICKACTIVE)
+            activate_english_keyboard();
+        return 0;
+    case WM_SETFOCUS:
+        activate_english_keyboard();
         return 0;
     case WM_TIMER: {
         DWORD now = GetTickCount();
@@ -242,21 +316,32 @@ static LRESULT CALLBACK window_proc(HWND h, UINT msg, WPARAM wp, LPARAM lp)
         return 0;
     }
     case WM_CLOSE: stop(); close_serial(); DestroyWindow(h); return 0;
-    case WM_DESTROY: KillTimer(h,1); PostQuitMessage(0); return 0;
+    case WM_DESTROY:
+        InterlockedExchange(&watchdog_stop_,1);
+        KillTimer(h,1); if(background_bitmap_) DeleteObject(background_bitmap_);
+        if(transparent_brush_) DeleteObject(transparent_brush_);
+        restore_keyboard_layout();
+        PostQuitMessage(0); return 0;
     }
     return DefWindowProcW(h,msg,wp,lp);
 }
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, char *cmd, int show)
 {
     (void)previous; (void)cmd;
+    previous_keyboard_layout_ = GetKeyboardLayout(0);
+    activate_english_keyboard();
     WNDCLASSW wc={0};
     wc.lpfnWndProc=window_proc; wc.hInstance=instance; wc.lpszClassName=L"RMPCController";
+    wc.hIcon=LoadIconW(instance,MAKEINTRESOURCEW(IDI_APP_ICON));
     wc.hCursor=LoadCursor(NULL,IDC_ARROW); wc.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
     if (!RegisterClassW(&wc)) return 1;
     HWND h=CreateWindowW(wc.lpszClassName,L"RoboMaster 电脑键盘调试 — UART1",
         WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX,
         CW_USEDEFAULT,CW_USEDEFAULT,940,585,NULL,NULL,instance,NULL);
     if (!h) return 1;
+    InterlockedExchange(&main_heartbeat_tick_,(LONG)GetTickCount());
+    watchdog_thread_=CreateThread(NULL,0,watchdog_proc,NULL,0,NULL);
+    if (!watchdog_thread_) return 2;
     /* Exercise the real GUI without opening a serial port or moving hardware. */
     if (strstr(cmd, "--self-test") != NULL) {
         int result = 0;

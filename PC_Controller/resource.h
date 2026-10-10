@@ -1,0 +1,2 @@
+#define IDI_APP_ICON 100
+#define IDB_BACKGROUND 101
