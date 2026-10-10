@@ -36,6 +36,7 @@ void bspMotorInit(void)
 void bspMotorSetSpeed(MotorIdType motor_id, int32_t speed)
 {
     uint32_t duty_cycle = 0;
+    int32_t pwm_speed;
 
     if (motor_id >= MOTOR_COUNT)
     {
@@ -52,17 +53,19 @@ void bspMotorSetSpeed(MotorIdType motor_id, int32_t speed)
         speed = -MAX_PWM_VALUE;
     }
 
+    /* Keep current_speed_ in logical units; only the H-bridge command is inverted. */
     motor->current_speed_ = speed;
+    pwm_speed = (motor_id == MOTOR_YAW) ? (speed * YAW_MOTOR_DIRECTION) : speed;
 
-    if (speed > 0)
+    if (pwm_speed > 0)
     {
-        duty_cycle = (uint32_t)speed;
+        duty_cycle = (uint32_t)pwm_speed;
         __HAL_TIM_SET_COMPARE(motor->htim_, motor->channel_in1_, duty_cycle);
         __HAL_TIM_SET_COMPARE(motor->htim_, motor->channel_in2_, 0);
     }
-    else if (speed < 0)
+    else if (pwm_speed < 0)
     {
-        duty_cycle = (uint32_t)(-speed);
+        duty_cycle = (uint32_t)(-pwm_speed);
         __HAL_TIM_SET_COMPARE(motor->htim_, motor->channel_in1_, 0);
         __HAL_TIM_SET_COMPARE(motor->htim_, motor->channel_in2_, duty_cycle);
     }

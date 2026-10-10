@@ -20,6 +20,8 @@ CAN 速度目标 → 位置/速度目标选择 → 编码器测速 → 速度 PI
 
 正常模式直接使用 CAN duty。将 `debug_data.debug_mode` 改为 `2` 后，Yaw 使用级联位置/速度环：`motor[1].debug_target_angle_deg` 是相对上电编码器零点的角度（度），可在 Ozone 中实时修改。位置环输出速度目标，速度环输出 PWM；Pitch 在该模式仍保持 CAN duty。模式 `1` 可单独调试 Yaw 速度环。编码器分辨率会影响低速反馈的量化精度，需结合实际机械负载调整 PID。
 
+Yaw 的板级方向已在 `bspMotorSetSpeed()` 中做逻辑反向：正的逻辑目标应对应正的编码器反馈。
+
 ## Ozone 调试
 
 观察 `volatile DebugData debug_data`：

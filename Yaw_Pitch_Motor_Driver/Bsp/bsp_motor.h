@@ -6,6 +6,9 @@
 
 #define MAX_PWM_VALUE 999  /* TIM ARR  */
 
+/* Board wiring makes a positive logical Yaw command rotate negative. */
+#define YAW_MOTOR_DIRECTION (-1)
+
 /* 两路电机使用与 Chassis_Motor_Driver 相同的编码器/减速箱参数。 */
 #define PITCH_GEAR_RATIO        30.0f
 #define YAW_GEAR_RATIO          45.0f
