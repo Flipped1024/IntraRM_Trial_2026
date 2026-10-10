@@ -11,6 +11,7 @@ static volatile uint32_t yaw_command_tick;
 static volatile uint8_t yaw_command_received;
 static float filtered_speed_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
 static float raw_speed_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
+static uint8_t last_debug_mode = DEBUG_MODE_CAN_OPEN_LOOP;
 
 void pidInit(PidController *pid, PidType type, float kp, float ki, float kd, float max_out, float max_integral)
 {
@@ -96,6 +97,21 @@ float pidCalculate(PidController *pid, float measure, float target)
     return pid->output_;
 }
 
+void pidReset(PidController *pid)
+{
+    if (pid == NULL)
+    {
+        return;
+    }
+    pid->target_ = 0.0f;
+    pid->measure_ = 0.0f;
+    pid->error_ = 0.0f;
+    pid->last_error_ = 0.0f;
+    pid->prev_error_ = 0.0f;
+    pid->integral_ = 0.0f;
+    pid->output_ = 0.0f;
+}
+
 void appControlInit(void)
 {
     bspMotorInit();
@@ -120,6 +136,7 @@ void appControlInit(void)
     }
 
     appDebugInit();
+    last_debug_mode = DEBUG_MODE_CAN_OPEN_LOOP;
 }
 
 void appControlSetTargetPosition(MotorIdType motor_id, int32_t position)
@@ -150,6 +167,19 @@ void appControlSetOpenLoopDuty(MotorIdType motor_id, int32_t duty)
 
 void appControlLoop(void)
 {
+    uint8_t debug_mode = debug_data.debug_mode;
+
+    /* Do not carry an integral/output from one control source into another. */
+    if (debug_mode != last_debug_mode)
+    {
+        for (uint8_t i = 0; i < CONTROL_MOTOR_NUM; i++)
+        {
+            pidReset(&position_pid_motors[i]);
+            pidReset(&speed_pid_motors[i]);
+        }
+        last_debug_mode = debug_mode;
+    }
+
     for (uint8_t i = 0; i < CONTROL_MOTOR_NUM; i++)
     {
         position_pid_motors[i].kp_ = debug_data.pos_kp;
@@ -184,36 +214,30 @@ void appControlLoop(void)
         filtered_speed_rpm[i] += filter_alpha *
                                  (raw_speed_rpm[i] - filtered_speed_rpm[i]);
 
+        int32_t output_duty = target_open_loop_duty[i];
         float position_target_pulse = (float)target_positions[i];
-        float target_speed_rpm;
+        float target_speed_rpm = 0.0f;
 
-        if ((i == MOTOR_YAW || i == MOTOR_PITCH) && debug_data.debug_mode != 1U) {
-            target_speed_rpm = target_speeds_rpm[i];
-            if (!yaw_command_received || (uint32_t)(HAL_GetTick() - yaw_command_tick) > 150U) {
-                target_speed_rpm = 0.0f;
-            }
-        } else if (debug_data.debug_mode == 1U)
+        if (debug_mode == DEBUG_MODE_POSITION && i == MOTOR_YAW)
         {
-            /* Ozone debug mode: use the editable target directly as the
-             * speed-loop setpoint, while retaining encoder feedback and the
-             * speed PID/current limiting. */
-            target_speed_rpm = debug_data.motor[i].debug_target_speed_rpm;
-        }
-        else
-        {
-            if (debug_data.debug_mode == 2U)
-            {
-                position_target_pulse =
-                    debug_data.motor[i].debug_target_angle_deg *
-                    (bspMotorPulsesPerShaftRev((MotorIdType)i) / 360.0f);
-            }
-
+            /* Ozone angle is an absolute angle from the encoder count at boot. */
+            position_target_pulse = debug_data.motor[i].debug_target_angle_deg *
+                                    (bspMotorPulsesPerShaftRev((MotorIdType)i) / 360.0f);
             target_speed_rpm = pidCalculate(&position_pid_motors[i],
                                             (float)current_position,
                                             position_target_pulse);
+            output_duty = (int32_t)pidCalculate(&speed_pid_motors[i],
+                                                 filtered_speed_rpm[i],
+                                                 target_speed_rpm);
         }
-        (void)target_speed_rpm;
-        bspMotorSetSpeed((MotorIdType)i, target_open_loop_duty[i]);
+        else if (debug_mode == DEBUG_MODE_SPEED && i == MOTOR_YAW)
+        {
+            target_speed_rpm = debug_data.motor[i].debug_target_speed_rpm;
+            output_duty = (int32_t)pidCalculate(&speed_pid_motors[i],
+                                                 filtered_speed_rpm[i],
+                                                 target_speed_rpm);
+        }
+        bspMotorSetSpeed((MotorIdType)i, output_duty);
     }
 
     appDebugUpdate();
@@ -229,7 +253,7 @@ void appControlGetDebugData(volatile DebugData *debug)
     for (uint8_t i = 0; i < CONTROL_MOTOR_NUM; i++)
     {
         uint8_t enc_id = i + 1;
-        if (debug_data.debug_mode == 2U)
+        if (debug_data.debug_mode == DEBUG_MODE_POSITION && i == MOTOR_YAW)
         {
             debug->motor[i].target_pos_pulse = (int32_t)(
                 debug_data.motor[i].debug_target_angle_deg *

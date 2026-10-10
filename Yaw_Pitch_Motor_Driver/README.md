@@ -1,6 +1,6 @@
 ﻿# Yaw/Pitch Motor Driver
 
-基于 STM32F103C6T6 的双轴开环 PWM 电机驱动板。Pitch 使用 520 电机，Yaw 使用 370 电机。主控通过 CAN `0x114` 下发两个有符号 PWM duty，驱动板直接输出 PWM。编码器只用于反馈观察。
+基于 STM32F103C6T6 的双轴电机驱动板。Pitch 使用 520 电机，Yaw 使用 370 电机。正常模式下主控通过 CAN `0x114` 下发两个有符号 PWM duty；编码器同时提供速度和位置反馈。
 
 ## CAN 协议
 
@@ -18,7 +18,7 @@
 CAN 速度目标 → 位置/速度目标选择 → 编码器测速 → 速度 PID → PWM
 ```
 
-正常模式直接使用 CAN duty，不经过位置环或速度环。`debug_data.debug_mode` 可用于 Ozone 直接速度或位置调试。编码器分辨率会影响低速反馈的量化精度，需结合实际机械负载调整 PID。
+正常模式直接使用 CAN duty。将 `debug_data.debug_mode` 改为 `2` 后，Yaw 使用级联位置/速度环：`motor[1].debug_target_angle_deg` 是相对上电编码器零点的角度（度），可在 Ozone 中实时修改。位置环输出速度目标，速度环输出 PWM；Pitch 在该模式仍保持 CAN duty。模式 `1` 可单独调试 Yaw 速度环。编码器分辨率会影响低速反馈的量化精度，需结合实际机械负载调整 PID。
 
 ## Ozone 调试
 
@@ -28,6 +28,8 @@ CAN 速度目标 → 位置/速度目标选择 → 编码器测速 → 速度 PI
 - `target_speed_rpm` 为当前速度环目标。
 - `current_speed_rpm`、`raw_speed_rpm`、`delta_pulse` 为编码器速度观测。
 - `motor_duty` 为速度 PID 最终 PWM 输出。
+- `debug_mode=0/1/2` 分别表示 CAN 开环、Yaw 速度调试、Yaw 位置调试。
+- 位置调试时修改 `debug_data.motor[1].debug_target_angle_deg`，并观察 `current_pos_angle_deg`、`pos_error` 和 `motor_duty`。
 - `can_debug_data` 用于观察 CAN 收发和错误状态。
 
 ## 构建

@@ -38,7 +38,7 @@ typedef struct DebugData {
     float spd_deadband;
     float spd_filter_alpha;
 
-    /* 0: CAN position; 1: direct speed; 2: Ozone position. */
+    /* 0: CAN open-loop duty; 1: Ozone yaw speed; 2: Ozone yaw position. */
     uint8_t debug_mode;
     DebugMotorData motor[DEBUG_MOTOR_NUM];
 } DebugData;

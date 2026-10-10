@@ -11,6 +11,11 @@ typedef struct DebugData DebugData;
 
 #define CONTROL_MOTOR_NUM 2
 
+/* Values written through debug_data.debug_mode from Ozone. */
+#define DEBUG_MODE_CAN_OPEN_LOOP 0U
+#define DEBUG_MODE_SPEED         1U
+#define DEBUG_MODE_POSITION      2U
+
 #define MOTOR_POSITION_PID_KP 2.0f
 #define MOTOR_POSITION_PID_KI 0.0f
 #define MOTOR_POSITION_PID_KD 15.0f
@@ -51,6 +56,7 @@ typedef struct
 
 void pidInit(PidController *pid, PidType type, float kp, float ki, float kd, float max_out, float max_integral);
 float pidCalculate(PidController *pid, float measure, float target);
+void pidReset(PidController *pid);
 
 void appControlInit(void);
 void appControlLoop(void);
