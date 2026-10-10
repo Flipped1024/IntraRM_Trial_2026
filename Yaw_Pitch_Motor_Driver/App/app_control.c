@@ -6,6 +6,7 @@ static PidController position_pid_motors[CONTROL_MOTOR_NUM];
 static PidController speed_pid_motors[CONTROL_MOTOR_NUM];
 static volatile int32_t target_positions[CONTROL_MOTOR_NUM] = {0, 0};
 static volatile float target_speeds_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
+static volatile int32_t target_open_loop_duty[CONTROL_MOTOR_NUM] = {0, 0};
 static volatile uint32_t yaw_command_tick;
 static volatile uint8_t yaw_command_received;
 static float filtered_speed_rpm[CONTROL_MOTOR_NUM] = {0.0f, 0.0f};
@@ -140,6 +141,13 @@ void appControlSetTargetSpeed(MotorIdType motor_id, float speed_rpm)
     }
 }
 
+void appControlSetOpenLoopDuty(MotorIdType motor_id, int32_t duty)
+{
+    if (motor_id < CONTROL_MOTOR_NUM) {
+        target_open_loop_duty[motor_id] = duty;
+    }
+}
+
 void appControlLoop(void)
 {
     for (uint8_t i = 0; i < CONTROL_MOTOR_NUM; i++)
@@ -204,9 +212,8 @@ void appControlLoop(void)
                                             (float)current_position,
                                             position_target_pulse);
         }
-        float output = pidCalculate(&speed_pid_motors[i],
-                                    filtered_speed_rpm[i], target_speed_rpm);
-        bspMotorSetSpeed((MotorIdType)i, (int32_t)output);
+        (void)target_speed_rpm;
+        bspMotorSetSpeed((MotorIdType)i, target_open_loop_duty[i]);
     }
 
     appDebugUpdate();

@@ -1,21 +1,25 @@
 
 
-OpenDocument="main.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Core/Src/main.c", Line=127
+GraphedExpression="((g_debug_).gimbal_).pitch_current_speed_", DisplayFormat=DISPLAY_FORMAT_DEC, Color=#e56a6f
+OpenDocument="main.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Core/Src/main.c", Line=130
 OpenDocument="stm32l4xx_hal.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal.c", Line=326
-OpenDocument="stm32l4xx_hal_rcc.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c", Line=1270
+OpenDocument="bsp_can.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Bsp/Src/bsp_can.c", Line=51
+OpenDocument="ieee754-df.S", FilePath="D:/W/B/src/gcc-13.4.0/libgcc/config/arm/ieee754-df.S", Line=0
 OpenDocument="startup_stm32l431xx.s", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/startup_stm32l431xx.s", Line=48
-OpenDocument="stm32l4xx_hal_can.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_can.c", Line=1376
+OpenDocument="stm32l4xx_hal_rcc.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c", Line=1270
+OpenDocument="stm32l4xx_hal_can.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_can.c", Line=1379
+OpenDocument="app_debug.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/App/Src/app_debug.c", Line=99
 OpenDocument="stm32l4xx_hal_dma.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_L431RCT6/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_dma.c", Line=867
 OpenToolbar="Debug", Floating=0, x=0, y=0
-OpenWindow="Source Files", DockArea=LEFT, x=0, y=2, w=997, h=240, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
-OpenWindow="Watched Data 1", DockArea=LEFT, x=0, y=0, w=997, h=349, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=2, w=997, h=241, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Watched Data 1", DockArea=LEFT, x=0, y=0, w=997, h=344, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 OpenWindow="Data Sampling", DockArea=BOTTOM, x=0, y=0, w=2560, h=161, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
-OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=1417, h=785, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="1 ns / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="1241;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="1247;0", CodeGraphLegendShown=0, CodeGraphLegendPosition="1203;0"
-OpenWindow="Console", DockArea=LEFT, x=0, y=1, w=997, h=194, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=1417, h=785, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=0, CodePaneShown=0, PinCursor="Cursor Movable", TimePerDiv="2 s", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="0;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=0, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="1241;0", CodeGraphLegendShown=0, CodeGraphLegendPosition="1203;0"
+OpenWindow="Console", DockArea=LEFT, x=0, y=1, w=997, h=198, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
 TableHeader="Source Files", SortCol="File", SortOrder="ASCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[353;146;118;146;692]
-TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time"], ColWidths=[100;100]
-TableHeader="Data Sampling Setup", SortCol="Max", SortOrder="DESCENDING", VisibleCols=["Expression";"Type";"Value";"Average";"Min";"Max";"# Changes";"Min. Change";"Max. Change"], ColWidths=[508;100;100;100;100;100;100;100;1352]
+TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";" ((g_debug_).gimbal_).pitch_current_speed_"], ColWidths=[100;100;100]
+TableHeader="Data Sampling Setup", SortCol="Max", SortOrder="DESCENDING", VisibleCols=["Expression";"Type";"Value";"Average";"Min";"Max";"# Changes";"Min. Change";"Max. Change"], ColWidths=[508;112;100;112;100;100;100;100;1328]
 TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
 TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[452;254;100;174]
 TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]

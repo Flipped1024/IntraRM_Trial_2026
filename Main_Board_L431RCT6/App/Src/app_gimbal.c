@@ -19,11 +19,11 @@ void gimbalInit(void)
     gimbal_.calib_stall_detected_ = 0;
 
     gimbal_.pitch_target_pos_  = 0;
-    gimbal_.pitch_target_speed_rpm_ = 0;
+    gimbal_.pitch_target_duty_ = 0;
     gimbal_.pitch_current_pos_ = 0;
     gimbal_.pitch_current_speed_ = 0;
     gimbal_.yaw_target_pos_ = 0;
-    gimbal_.yaw_target_speed_rpm_ = 0;
+    gimbal_.yaw_target_duty_ = 0;
     gimbal_.yaw_current_pos_ = 0;
     gimbal_.yaw_current_speed_ = 0;
     gimbal_.yaw_center_pos_ = 0;
@@ -147,13 +147,13 @@ static void gimbalCalibCenter(void)
 static void gimbalPitchSpeedUpdate(void)
 {
     int32_t stick = controller_state.right_stick_vertical_;
-    if (controllerDataIsValid() == 0U || abs(stick) <= GIMBAL_YAW_STICK_DEADBAND) {
-        gimbal_.pitch_target_speed_rpm_ = 0;
+    if (controllerDataIsValid() == 0U || abs(stick) <= GIMBAL_PITCH_STICK_DEADBAND) {
+        gimbal_.pitch_target_duty_ = 0;
         return;
     }
     if (stick > 127) stick = 127;
     if (stick < -127) stick = -127;
-    gimbal_.pitch_target_speed_rpm_ = (int16_t)((stick * GIMBAL_PITCH_MAX_SPEED_RPM) / 127);
+    gimbal_.pitch_target_duty_ = (stick > 0) ? GIMBAL_PITCH_OPEN_LOOP_DUTY : -GIMBAL_PITCH_OPEN_LOOP_DUTY;
 }
 
 /* Bounded target around the first valid position after power-up. Release holds
@@ -162,17 +162,17 @@ static void gimbalYawUpdate(void)
 {
     int32_t stick = controller_state.right_stick_horizontal_;
     if (controllerDataIsValid() == 0U) {
-        gimbal_.yaw_target_speed_rpm_ = 0;
+        gimbal_.yaw_target_duty_ = 0;
         return;
     }
     if (abs(stick) <= GIMBAL_YAW_STICK_DEADBAND) {
-        gimbal_.yaw_target_speed_rpm_ = 0;
+        gimbal_.yaw_target_duty_ = 0;
         return;
     }
     if (stick > 127) stick = 127;
     if (stick < -127) stick = -127;
     /* Negative encoder direction is clockwise on the current vehicle. */
-    gimbal_.yaw_target_speed_rpm_ = (int16_t)(-(stick * GIMBAL_YAW_MAX_SPEED_RPM) / 127);
+    gimbal_.yaw_target_duty_ = (stick > 0) ? -GIMBAL_YAW_OPEN_LOOP_DUTY : GIMBAL_YAW_OPEN_LOOP_DUTY;
 }
 
 void gimbalUpdate(void)
@@ -194,8 +194,8 @@ void gimbalUpdate(void)
 
 void gimbalEmergencyStop(void)
 {
-    gimbal_.pitch_target_speed_rpm_ = 0;
-    gimbal_.yaw_target_speed_rpm_ = 0;
+    gimbal_.pitch_target_duty_ = 0;
+    gimbal_.yaw_target_duty_ = 0;
     gimbal_.friction_wheels_enabled_ = 0U;
     gimbal_.fire_active_ = 0U;
     gimbal_.fric_duty_ = GIMBAL_FRIC_DUTY_OFF;
@@ -213,9 +213,9 @@ void gimbalSendCmd(void)
 {
     uint8_t tx_data[CAN_FRAME_DATA_LEN];
 
-    /* 0x113 閸欐垵鐨犻弶鍨礂鐠侇喕璐熸径褏顏敍姘箽閻?Pitch 鐎涙顔岄妴浣规噰閹匡箒鐤?duty閵嗕焦瀚у?duty閵?*/
-    tx_data[0] = (uint8_t)((gimbal_.pitch_target_speed_rpm_ >> 8) & 0xFF);
-    tx_data[1] = (uint8_t)(gimbal_.pitch_target_speed_rpm_ & 0xFF);
+    /* 0x113 闁告瑦鍨甸惃鐘诲级閸喖绀傞悹渚囧枙鐠愮喐寰勮椤忣剟鏁嶅顐ょ闁?Pitch 閻庢稒顨嗛宀勫Υ娴ｈ鍣伴柟鍖＄畳閻?duty闁靛棔鐒︾€氀冾嚕?duty闁?*/
+    tx_data[0] = (uint8_t)((gimbal_.pitch_target_duty_ >> 8) & 0xFF);
+    tx_data[1] = (uint8_t)(gimbal_.pitch_target_duty_ & 0xFF);
     tx_data[2] = 0;
     tx_data[3] = 0;
 
@@ -229,8 +229,8 @@ void gimbalSendCmd(void)
 
 void gimbalProcessFeedback(uint32_t can_id, const uint8_t *data)
 {
-    /* 0x206/0x207 鐏炵偘绨悪顒傜彌閸欐垵鐨犻弶鍖＄礉閸欘垵鍏橀弰顖氬弿闂嗗墎濮搁幀浣告姎閿涙稐绨崣鏉垮蓟鏉炴潙褰ч幒銉︽暪
-     * 閼奉亜绻侀惃?0x208/0x209閿涘矂浼╅崗宥呮倱娑撯偓閹崵鍤庢稉濠勬畱閺冄勬緲閻樿埖鈧浇顩惄鏍埂鐎圭偛寮芥＃鍫涒偓?*/
+    /* 0x206/0x207 閻忕偟鍋樼花顒勬偑椤掑倻褰岄柛娆愬灥閻ㄧ娀寮堕崠锛勭闁告瑯鍨甸崗姗€寮伴姘伎闂傚棗澧庢慨鎼佸箑娴ｅ憡濮庨柨娑欑◥缁垶宕ｉ弶鍨摕閺夌偞娼欒ぐ褔骞掗妷锔芥毆
+     * 闁煎浜滅换渚€鎯?0x208/0x209闁挎稑鐭傛导鈺呭礂瀹ュ懏鍊卞☉鎾亾闁诡剝宕甸崵搴㈢▔婵犲嫭鐣遍柡鍐勫嫭绶查柣妯垮煐閳ь兛娴囬々顐︽儎閺嶎偅鍩傞悗鍦仜瀵姤锛冮崼娑掑亾?*/
     if (can_id == GIMBAL_CAN_YAW_PITCH_SPEED_ID) {
         gimbal_.pitch_current_speed_ = (int16_t)(((uint16_t)data[0] << 8) | data[1]);
         gimbal_.yaw_current_speed_ = (int16_t)(((uint16_t)data[2] << 8) | data[3]);
@@ -253,15 +253,15 @@ void gimbalProcessFeedback(uint32_t can_id, const uint8_t *data)
 void gimbalSendYawPitchCmd(void)
 {
     uint8_t tx_data[CAN_FRAME_DATA_LEN];
-    tx_data[0] = (uint8_t)((gimbal_.pitch_target_speed_rpm_ >> 8) & 0xFF);
-    tx_data[1] = (uint8_t)(gimbal_.pitch_target_speed_rpm_ & 0xFF);
+    tx_data[0] = (uint8_t)((gimbal_.pitch_target_duty_ >> 8) & 0xFF);
+    tx_data[1] = (uint8_t)(gimbal_.pitch_target_duty_ & 0xFF);
     tx_data[2] = 0;
     tx_data[3] = 0;
-    tx_data[4] = (uint8_t)((gimbal_.yaw_target_speed_rpm_ >> 8) & 0xFF);
-    tx_data[5] = (uint8_t)(gimbal_.yaw_target_speed_rpm_ & 0xFF);
+    tx_data[4] = (uint8_t)((gimbal_.yaw_target_duty_ >> 8) & 0xFF);
+    tx_data[5] = (uint8_t)(gimbal_.yaw_target_duty_ & 0xFF);
     tx_data[6] = 0;
     tx_data[7] = 0;
-    g_debug_.gimbal_.pitch_target_speed_rpm_ = gimbal_.pitch_target_speed_rpm_;
-    g_debug_.gimbal_.yaw_target_speed_rpm_ = gimbal_.yaw_target_speed_rpm_;
+    g_debug_.gimbal_.pitch_target_duty_ = gimbal_.pitch_target_duty_;
+    g_debug_.gimbal_.yaw_target_duty_ = gimbal_.yaw_target_duty_;
     g_debug_.gimbal_.yaw_tx_status_ = canSend(YAW_PITCH_CAN_CMD_ID, tx_data, CAN_FRAME_DATA_LEN);
 }

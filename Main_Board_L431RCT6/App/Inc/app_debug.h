@@ -21,12 +21,12 @@ typedef struct {
     volatile int32_t pitch_target_pos_;
     volatile int32_t pitch_current_pos_;
     volatile int16_t pitch_current_speed_;
-    volatile int16_t pitch_target_speed_rpm_;
+    volatile int16_t pitch_target_duty_;
     volatile int32_t yaw_target_pos_;
     volatile int32_t yaw_current_pos_;
     volatile int32_t yaw_center_pos_;
     volatile int16_t yaw_current_speed_;
-    volatile int16_t yaw_target_speed_rpm_;
+    volatile int16_t yaw_target_duty_;
     volatile uint32_t yaw_tx_status_;
     volatile int8_t right_stick_horizontal_;
     volatile int8_t right_stick_vertical_;

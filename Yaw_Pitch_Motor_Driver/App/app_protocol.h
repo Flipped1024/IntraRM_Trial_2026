@@ -10,8 +10,8 @@
 #include "app_control.h"
 
 typedef struct {
-    int16_t pitch_target_speed_rpm_;
-    int16_t yaw_target_speed_rpm_;
+    int16_t pitch_target_duty_;
+    int16_t yaw_target_duty_;
 } ProtocolControlFrame;
 
 typedef struct {

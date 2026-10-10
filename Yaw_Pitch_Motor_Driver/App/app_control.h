@@ -56,6 +56,7 @@ void appControlInit(void);
 void appControlLoop(void);
 void appControlSetTargetPosition(MotorIdType motor_id, int32_t position);
 void appControlSetTargetSpeed(MotorIdType motor_id, float speed_rpm);
+void appControlSetOpenLoopDuty(MotorIdType motor_id, int32_t duty);
 void appControlGetDebugData(volatile DebugData *debug);
 
 #endif /* APP_CONTROL_H */

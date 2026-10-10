@@ -12,7 +12,7 @@
 #define GIMBAL_CAN_YAW_PITCH_POS_ID 0x209
 
 #define GIMBAL_FRIC_DUTY_ON     0
-#define GIMBAL_FEED_DUTY_ON     0
+#define GIMBAL_FEED_DUTY_ON     999
 #define GIMBAL_FRIC_DUTY_OFF    999
 #define GIMBAL_FEED_DUTY_OFF    0
 
@@ -28,8 +28,11 @@
 #define GIMBAL_YAW_STICK_RANGE 127.0f
 #define GIMBAL_YAW_MAX_SPEED_RPM 70
 #define GIMBAL_PITCH_MAX_SPEED_RPM 70
+#define GIMBAL_YAW_OPEN_LOOP_DUTY 999
+#define GIMBAL_PITCH_OPEN_LOOP_DUTY 999
 #define GIMBAL_YAW_MAX_ANGLE_DEG 100.0f
-#define GIMBAL_YAW_STICK_DEADBAND 5
+#define GIMBAL_PITCH_STICK_DEADBAND 80
+#define GIMBAL_YAW_STICK_DEADBAND 80
 #define GIMBAL_YAW_FEEDBACK_TIMEOUT_MS 100U
 
 typedef enum {
@@ -51,11 +54,11 @@ typedef struct {
     uint8_t calib_stall_detected_;
 
     int32_t pitch_target_pos_;
-    int16_t pitch_target_speed_rpm_;
+    int16_t pitch_target_duty_;
     int32_t pitch_current_pos_;
     int16_t pitch_current_speed_;
     int32_t yaw_target_pos_;
-    int16_t yaw_target_speed_rpm_;
+    int16_t yaw_target_duty_;
     int32_t yaw_current_pos_;
     int16_t yaw_current_speed_;
     int32_t yaw_center_pos_;

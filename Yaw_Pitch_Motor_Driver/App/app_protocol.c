@@ -41,11 +41,11 @@ void appProtocolParse(uint32_t msg_id, const uint8_t *rx_buffer)
     {
         ProtocolControlFrame ctrl_frame;
 
-        ctrl_frame.pitch_target_speed_rpm_ = (int16_t)(((uint16_t)rx_buffer[0] << 8) | rx_buffer[1]);
-        ctrl_frame.yaw_target_speed_rpm_ = (int16_t)(((uint16_t)rx_buffer[4] << 8) | rx_buffer[5]);
+        ctrl_frame.pitch_target_duty_ = (int16_t)(((uint16_t)rx_buffer[0] << 8) | rx_buffer[1]);
+        ctrl_frame.yaw_target_duty_ = (int16_t)(((uint16_t)rx_buffer[4] << 8) | rx_buffer[5]);
 
-        appControlSetTargetSpeed(MOTOR_PITCH, (float)ctrl_frame.pitch_target_speed_rpm_);
-        appControlSetTargetSpeed(MOTOR_YAW, (float)ctrl_frame.yaw_target_speed_rpm_);
+        appControlSetOpenLoopDuty(MOTOR_PITCH, ctrl_frame.pitch_target_duty_);
+        appControlSetOpenLoopDuty(MOTOR_YAW, ctrl_frame.yaw_target_duty_);
     }
 }
 

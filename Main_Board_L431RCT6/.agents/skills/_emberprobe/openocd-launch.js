@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { normalizeProbeSerial, normalizeAdapterSpeed } = require("./probe-connection");
+const { normalizeProbeSerial, normalizeAdapterSpeed, probeFamily } = require("./probe-connection");
 
 function normalizeTransport(value = "auto") {
     if (!["auto", "swd", "jtag", "hla_swd", "hla_jtag"].includes(value)) {
@@ -118,7 +118,7 @@ function buildOpenOcdTargetArgs(config, ports) {
 
 function buildOpenOcdConfigArgs(launch, transport = "auto", connection = {}) {
     normalizeTransport(transport);
-    const serial = normalizeProbeSerial(connection.probeSerial);
+    const serial = normalizeProbeSerial(connection.probeSerial, probeFamily(connection));
     const speed = normalizeAdapterSpeed(connection.adapterSpeedKhz);
     return [
         "-s",
@@ -129,7 +129,24 @@ function buildOpenOcdConfigArgs(launch, transport = "auto", connection = {}) {
         ...(transport === "auto" ? [] : ["-c", `transport select ${transport}`]),
         "-f",
         launch.targetPath,
-        ...(speed ? ["-c", `adapter speed ${speed}`] : [])
+        ...(speed
+            ? [
+                  "-c",
+                  `adapter speed ${speed}`,
+                  "-c",
+                  // Target reset scripts may change speed later. Cap those requests without replacing
+                  // their PLL, watchdog, reset or Flash setup. This wrapper exists only in this process.
+                  `proc _ep_speed_event {script} { local proc adapter {args} { ` +
+                      `if {[llength $args] == 2 && [lindex $args 0] eq "speed" && ` +
+                      `[string is integer -strict [lindex $args 1]] && [lindex $args 1] > ${speed}} { ` +
+                      `set args [list speed ${speed}] }; upcall adapter {*}$args }; uplevel 1 $script }; ` +
+                      `foreach _ep_speed_target [target names] { foreach _ep_speed_name { ` +
+                      `reset-start reset-init reset-end reset-assert-pre reset-assert-post reset-deassert-pre reset-deassert-post } { ` +
+                      `set _ep_speed_body [$_ep_speed_target cget -event $_ep_speed_name]; ` +
+                      `if {$_ep_speed_body ne ""} { $_ep_speed_target configure -event $_ep_speed_name ` +
+                      `[list _ep_speed_event $_ep_speed_body] } } }`
+              ]
+            : [])
     ];
 }
 
@@ -158,8 +175,11 @@ function resolveExecutablePath(executable) {
     if (configured.includes("/") || configured.includes("\\")) {
         const absolute = path.resolve(configured);
         try {
-            return fs.realpathSync(absolute);
+            const canonical = fs.realpathSync(absolute);
+            assertNativeExecutable(canonical);
+            return canonical;
         } catch (error) {
+            if (error.code === "OPENOCD_EXECUTABLE_UNSUPPORTED") throw error;
             return absolute;
         }
     }
@@ -184,7 +204,9 @@ function resolveExecutablePath(executable) {
                 fs.accessSync(candidate, fs.constants.X_OK);
                 if (!fs.statSync(candidate).isFile()) continue;
                 assertNativeExecutable(candidate);
-                return fs.realpathSync(candidate);
+                const canonical = fs.realpathSync(candidate);
+                assertNativeExecutable(canonical);
+                return canonical;
             } catch (error) {
                 if (error.code === "OPENOCD_EXECUTABLE_UNSUPPORTED") throw error;
                 /* try the next PATH entry */
