@@ -171,6 +171,7 @@ int main(void)
   MX_DMA_Init();
   MX_CAN1_Init();
   MX_USART3_UART_Init();
+  MX_USART1_UART_Init();
   MX_I2C2_Init();
   MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
@@ -212,6 +213,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    /* UART1 test: send the character '1' and receive the character '2'. */
+    {
+      uint8_t uart1_rx;
+      if (HAL_UART_Receive(&huart1, &uart1_rx, 1U, 0U) == HAL_OK &&
+          uart1_rx == (uint8_t)'1') {
+        const uint8_t uart1_reply = (uint8_t)'2';
+        (void)HAL_UART_Transmit(&huart1, &uart1_reply, 1U, 10U);
+      }
+    }
     if (bspTimControlPeriodElapsed()) {
       mpu6050Update();
       controlLoop();
