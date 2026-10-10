@@ -202,6 +202,7 @@ int main(void)
    * are all installed.  This is a configuration/driver check only; it does
    * not prove that a transceiver or a peer is present on the physical bus. */
   controllerRxInit(&huart3);
+  controllerPcRxInit();
   (void)mpu6050Init();
 
   /* USER CODE END 2 */
@@ -213,15 +214,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    /* UART1 test: send the character '1' and receive the character '2'. */
-    {
-      uint8_t uart1_rx;
-      if (HAL_UART_Receive(&huart1, &uart1_rx, 1U, 0U) == HAL_OK &&
-          uart1_rx == (uint8_t)'1') {
-        const uint8_t uart1_reply = (uint8_t)'2';
-        (void)HAL_UART_Transmit(&huart1, &uart1_reply, 1U, 10U);
-      }
-    }
     if (bspTimControlPeriodElapsed()) {
       mpu6050Update();
       controlLoop();
@@ -313,10 +305,17 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
     }
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &huart1) controllerPcRxComplete();
+}
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart == &huart3) {
         controllerRecover();
+    } else if (huart == &huart1) {
+        controllerPcRxError();
     }
 }
 

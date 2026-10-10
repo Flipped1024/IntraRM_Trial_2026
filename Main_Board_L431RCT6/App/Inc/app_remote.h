@@ -92,6 +92,13 @@ extern ControllerState controller_state;
 extern uint8_t controller_rx_dma_buffer[CONTROLLER_RX_DMA_BUFFER_SIZE];
 extern uint8_t controller_last_frame[CONTROLLER_FRAME_SIZE];
 
+/* 1 means enabled UART1 keyboard input currently has priority over gamepad. */
+extern volatile uint8_t controller_pc_active_;
+extern volatile uint32_t controller_pc_uart_errors_;
+void controllerPcRxInit(void);
+void controllerPcRxComplete(void);
+void controllerPcRxError(void);
+
 void    controllerRxInit(UART_HandleTypeDef *huart);
 void    controllerRxCallback(ControllerState *state, uint8_t *buffer,
                              uint16_t dma_write_pos);
