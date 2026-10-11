@@ -22,8 +22,8 @@ typedef struct DebugData DebugData;
 #define MOTOR_POSITION_PID_MAX_OUT 120.0f       /* 浣嶇疆鐜緭鍑猴細鐩爣 RPM */
 #define MOTOR_POSITION_PID_MAX_INTEGRAL_OUT 2000.0f
 
-#define MOTOR_SPEED_PID_KP 5.0f
-#define MOTOR_SPEED_PID_KI 0.1f
+#define MOTOR_SPEED_PID_KP 4.0f
+#define MOTOR_SPEED_PID_KI 1.1f
 #define MOTOR_SPEED_PID_KD 0.0f
 #define MOTOR_SPEED_PID_MAX_OUT MAX_PWM_VALUE
 #define MOTOR_SPEED_PID_MAX_INTEGRAL_OUT 1000.0f
