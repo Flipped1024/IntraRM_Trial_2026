@@ -4,11 +4,11 @@ OpenDocument="startup_stm32f407xx.s", FilePath="D:/RoboMaster/IntraRM_Trial_2026
 OpenDocument="stm32f4xx_hal_dma.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_F407IGH6/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c", Line=1221
 OpenDocument="main.c", FilePath="D:/RoboMaster/IntraRM_Trial_2026/Main_Board_F407IGH6/Core/Src/main.c", Line=91
 OpenToolbar="Debug", Floating=0, x=0, y=0
-OpenWindow="Source Files", DockArea=LEFT, x=0, y=1, w=426, h=436, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=1, w=426, h=430, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 OpenWindow="Watched Data 1", DockArea=BOTTOM, x=0, y=0, w=1003, h=337, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 OpenWindow="Data Sampling", DockArea=BOTTOM, x=1, y=0, w=1556, h=337, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VisibleTab=0, UniformSampleSpacing=0
 OpenWindow="Timeline", DockArea=RIGHT, x=0, y=0, w=1554, h=609, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=1, DataPaneShown=1, PowerPaneShown=1, CodePaneShown=1, PinCursor="Cursor Movable", TimePerDiv="1 ns / Div", TimeStampFormat="Time", DataGraphDrawAsPoints=0, DataGraphLegendShown=1, DataGraphUniformSampleSpacing=0, DataGraphLegendPosition="1378;0", DataGraphShowNamesAtCursor=0, PowerGraphDrawAsPoints=0, PowerGraphLegendShown=1, PowerGraphAvgFilterTime=Off, PowerGraphAvgFilterLen=Off, PowerGraphUniformSampleSpacing=0, PowerGraphLegendPosition="1384;0", CodeGraphLegendShown=1, CodeGraphLegendPosition="1341;0"
-OpenWindow="Console", DockArea=LEFT, x=0, y=0, w=426, h=172, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Console", DockArea=LEFT, x=0, y=0, w=426, h=178, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
 SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
 TableHeader="Source Files", SortCol="File", SortOrder="ASCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[353;146;118;146;692]
 TableHeader="Data Sampling Table", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time"], ColWidths=[100;100]

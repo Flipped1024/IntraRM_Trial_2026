@@ -182,24 +182,36 @@ mingw32-make -j2
 
 ## 当前云台手柄映射
 
-主控对 Yaw/Pitch 使用 `0x114` 开环占空比协议：
+主控通过 `0x114` 下发开环占空比，由主控实现 Pitch 的伪闭环时序：
 
-- 右摇杆上下：Pitch 直接速度控制，目标速度按摇杆比例映射，松杆发送 0 RPM。
-- 右摇杆左右：Yaw 直接速度控制，目标速度按摇杆比例映射，右推顺时针、左推逆时针，松杆发送 0 RPM。
-- `0x114` 字节 0–1 为 Pitch `int16_t` 速度 RPM，字节 4–5 为 Yaw `int16_t` 速度 RPM，均为大端序。
-- 驱动板使用速度 PID 将编码器反馈转换为 PWM 输出。
+- 右摇杆上下：Pitch 每次离开死区触发一次“驱动 → 反向制动 → 输出 0”。持续推杆不会重复触发，回到死区后可再次触发；松杆后当前动作仍会按时序完成。
+- 右摇杆左右：Yaw 纯开环，右推顺时针、左推逆时针；持续推杆持续输出固定占空比，松杆进入死区立即输出 0，不执行定时停止、反向制动或归中。
+- 两轴死区分别为 `GIMBAL_PITCH_STICK_DEADBAND`、`GIMBAL_YAW_STICK_DEADBAND`，当前均为 80；只有摇杆绝对值大于该值才有效。
+- `0x114` 字节 0–1 为 Pitch `int16_t` 占空比，字节 4–5 为 Yaw `int16_t` 占空比，均为大端序；驱动板使用 CAN 开环模式，不依赖角度环或速度环。
 - LB：底盘逆时针旋转；RB：底盘顺时针旋转；A：切换摩擦轮；RT：请求拨弹。
 
-Ozone 中可观察 `g_debug_.gimbal_.pitch_target_speed_rpm_`、`yaw_target_speed_rpm_` 以及反馈位置/速度字段。
-
+Ozone 中观察 `g_debug_.gimbal_.pitch_target_duty_`、`yaw_target_duty_`，以及反馈位置/速度字段。反馈仅供观察，不参与这两个轴的控制。
 ### MPU6050 调试
 
 MPU6050 使用 I2C2：PB13=SCL、PB14=SDA、PB12=INT；AD0 接地时地址为 `0x68`。TIM15_CH2（PB15）输出加热 PWM，周期 1000 个计数。启动后 `mpu6050Update()` 每 10 ms 读取一次原始数据，并将结果放在 `g_debug_.imu_`：`online_`、`i2c_error_`、`sample_count_` 用于链路判断，`accel_raw_`/`gyro_raw_`/`temp_raw_` 用于核对寄存器读数，`roll_deg_`/`pitch_deg_`/`yaw_deg_` 和 `yaw_rate_dps_` 用于观察解算，`temperature_c_`、`heater_pwm_`、`heater_pid_output_` 用于观察加热闭环。上电后前 100 个样本估计陀螺零偏，校准期间应保持 IMU 静止。
 
 MPU6050 驱动已按 `MPU6050例程(HAL库版本)` 的 `MPU6050_Get_Angle_Plus` 路径移植：四元数积分、重力方向 Mahony 校正、PT1 低通和 ±4 g/±2000 dps 量程；当前主循环按 10 ms 调用，故配置为 100 Hz。`g_debug_.imu_.quat_[]` 可直接核对四元数，`yaw_euler_deg_` 是 ±180° 范围内的四元数航向，`yaw_deg_` 是跨越 ±180° 后仍连续累计的航向。MPU6050 没有磁力计，因此 `yaw_deg_` 仍会漂移，不能作为长期绝对航向；底盘航向锁定还需要外部航向基准或定期重置零点。编译通过只证明固件路径正确，实际 I2C ACK、温度变化和姿态方向仍需在板上用 Ozone 及示波器/逻辑分析仪验证。
 
-拨弹/摩擦轮板使用 `0x113`：字节 4–5 为大端 `fric_duty`，字节 6–7 为大端 `feed_duty`；Yaw/Pitch 双轴板使用 `0x114` 下发两个大端 `int16_t` 速度目标。Yaw/Pitch 反馈为 `0x208`（两轴 10 ms 编码器增量）和 `0x209`（两轴累计编码器位置）。
+拨弹/摩擦轮板使用 `0x113`：字节 4–5 为大端 `fric_duty`，字节 6–7 为大端 `feed_duty`；Yaw/Pitch 双轴板使用 `0x114` 下发两个大端 `int16_t` 占空比目标。Yaw/Pitch 反馈为 `0x208`（两轴 10 ms 编码器增量）和 `0x209`（两轴累计编码器位置）。
 
-云台伪闭环参数位于 g_debug_.gimbal_：pseudo_closed_loop_enable_、pseudo_drive_ms_、pseudo_brake_ms_、pseudo_brake_ratio_，并可观察 pitch_pseudo_active_、pitch_pseudo_brake_phase_、yaw_pseudo_active_、yaw_pseudo_brake_phase_。
+### Pitch 伪闭环与 Yaw 开环实时调节
 
-云台实时 duty 调节：Ozone 可直接修改 g_debug_.gimbal_.pitch_open_loop_duty_、yaw_open_loop_duty_、pitch_brake_duty_、yaw_brake_duty_，范围会限制在 0 到 999；修改在下一个 10 ms 控制周期使用。
+参数位于 `g_debug_.gimbal_`，Ozone 修改后在下一个 10 ms 控制周期使用：
+
+| 字段 | 用途 | 默认值 |
+| --- | --- | --- |
+| `pseudo_closed_loop_enable_` | 仅 Pitch：1 为伪闭环，0 为持续开环；不影响 Yaw | 1 |
+| `pseudo_drive_ms_` | Pitch 驱动时间，最大 60000 ms | 100 ms |
+| `pseudo_brake_ms_` | Pitch 反向制动时间，最大 10000 ms | 10 ms |
+| `pitch_open_loop_duty_` | Pitch 驱动占空比幅值 | 999 |
+| `pitch_brake_duty_` | Pitch 反向制动占空比幅值 | 200 |
+| `yaw_open_loop_duty_` | Yaw 持续开环占空比幅值 | 700 |
+
+占空比幅值限制为 0–999。`pitch_pseudo_active_`、`pitch_pseudo_brake_phase_` 用于观察 Pitch 动作阶段；`yaw_pseudo_active_`、`yaw_pseudo_brake_phase_` 始终为 0。兼容保留的 `yaw_brake_duty_` 和 `pseudo_brake_ratio_` 不参与控制。
+
+固定默认驱动占空比在 `App/Inc/app_gimbal.h` 的 `GIMBAL_PITCH_OPEN_LOOP_DUTY`、`GIMBAL_YAW_OPEN_LOOP_DUTY` 中修改；时序和 Pitch 制动占空比默认值在 `App/Src/app_debug.c` 的 `debugInit()` 中修改。Ozone 的实时修改断电后不保存。

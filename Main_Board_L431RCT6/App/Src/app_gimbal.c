@@ -30,15 +30,10 @@ void gimbalInit(void)
     gimbal_.yaw_feedback_valid_ = 0U;
     gimbal_.yaw_feedback_tick_ = 0U;
     gimbal_.pitch_pseudo_phase_tick_ = 0U;
-    gimbal_.yaw_pseudo_phase_tick_ = 0U;
     gimbal_.pitch_pseudo_active_ = 0U;
     gimbal_.pitch_pseudo_brake_phase_ = 0U;
     gimbal_.pitch_pseudo_input_latched_ = 0U;
     gimbal_.pitch_pseudo_sign_ = 1;
-    gimbal_.yaw_pseudo_active_ = 0U;
-    gimbal_.yaw_pseudo_brake_phase_ = 0U;
-    gimbal_.yaw_pseudo_input_latched_ = 0U;
-    gimbal_.yaw_pseudo_sign_ = 1;
 
     gimbal_.friction_wheels_enabled_ = 0U;
     gimbal_.fire_active_ = 0U;
@@ -221,53 +216,17 @@ static void gimbalPitchSpeedUpdate(void)
     }
 }
 
-/* Bounded target around the first valid position after power-up. Release holds
- * the last target; the stick does not command an automatic return-to-center. */
+/* Yaw always uses continuous open-loop duty, independent of Pitch timing. */
 static void gimbalYawUpdate(void)
 {
     int32_t stick = controller_state.right_stick_horizontal_;
     const uint8_t input_active =
         (controllerDataIsValid() != 0U && abs(stick) > GIMBAL_YAW_STICK_DEADBAND) ? 1U : 0U;
-    if (input_active == 0U) gimbal_.yaw_pseudo_input_latched_ = 0U;
-    if (stick > 127) stick = 127;
-    if (stick < -127) stick = -127;
-    if (g_debug_.gimbal_.pseudo_closed_loop_enable_ == 0U) {
-        gimbal_.yaw_pseudo_active_ = 0U;
-        gimbal_.yaw_pseudo_brake_phase_ = 0U;
-        gimbal_.yaw_target_duty_ = input_active ?
-            ((stick > 0) ? -gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_) :
-             gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_)) : 0;
-        return;
-    }
-    if (input_active != 0U && gimbal_.yaw_pseudo_input_latched_ == 0U &&
-        gimbal_.yaw_pseudo_active_ == 0U) {
-        gimbal_.yaw_pseudo_input_latched_ = 1U;
-        gimbal_.yaw_pseudo_active_ = 1U;
-        gimbal_.yaw_pseudo_brake_phase_ = 0U;
-        gimbal_.yaw_pseudo_phase_tick_ = HAL_GetTick();
-        gimbal_.yaw_pseudo_sign_ = (stick >= 0) ? 1 : -1;
-    }
-    if (gimbal_.yaw_pseudo_active_ == 0U) {
-        gimbal_.yaw_target_duty_ = 0;
-    } else if (gimbal_.yaw_pseudo_brake_phase_ == 0U) {
-        /* Negative encoder direction is clockwise on the current vehicle. */
-        gimbal_.yaw_target_duty_ = (gimbal_.yaw_pseudo_sign_ > 0) ?
-            -gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_) :
-            gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_);
-        if (HAL_GetTick() - gimbal_.yaw_pseudo_phase_tick_ >= gimbalPseudoDriveMs()) {
-            gimbal_.yaw_pseudo_brake_phase_ = 1U;
-            gimbal_.yaw_pseudo_phase_tick_ = HAL_GetTick();
-        }
-    } else {
-        gimbal_.yaw_target_duty_ = (gimbal_.yaw_pseudo_sign_ > 0) ?
-            (int16_t)gimbalDutyClamp(&g_debug_.gimbal_.yaw_brake_duty_) :
-            -(int16_t)gimbalDutyClamp(&g_debug_.gimbal_.yaw_brake_duty_);
-        if (HAL_GetTick() - gimbal_.yaw_pseudo_phase_tick_ >= gimbalPseudoBrakeMs()) {
-            gimbal_.yaw_pseudo_active_ = 0U;
-            gimbal_.yaw_pseudo_brake_phase_ = 0U;
-            gimbal_.yaw_target_duty_ = 0;
-        }
-    }
+
+    /* Negative duty is clockwise on the current vehicle. */
+    gimbal_.yaw_target_duty_ = input_active ?
+        ((stick > 0) ? -gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_) :
+         gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_)) : 0;
 }
 
 void gimbalUpdate(void)
@@ -285,10 +244,11 @@ void gimbalUpdate(void)
                       gimbal_.fric_duty_, gimbal_.feed_duty_,
                       controller_state.right_stick_horizontal_,
                       controller_state.right_stick_vertical_);
+    /* Retained debug fields: Yaw has no pseudo-loop or braking phase. */
+    g_debug_.gimbal_.yaw_pseudo_active_ = 0U;
+    g_debug_.gimbal_.yaw_pseudo_brake_phase_ = 0U;
     g_debug_.gimbal_.pitch_pseudo_active_ = gimbal_.pitch_pseudo_active_;
     g_debug_.gimbal_.pitch_pseudo_brake_phase_ = gimbal_.pitch_pseudo_brake_phase_;
-    g_debug_.gimbal_.yaw_pseudo_active_ = gimbal_.yaw_pseudo_active_;
-    g_debug_.gimbal_.yaw_pseudo_brake_phase_ = gimbal_.yaw_pseudo_brake_phase_;
 }
 
 void gimbalEmergencyStop(void)
@@ -310,10 +270,6 @@ void gimbalEmergencyStop(void)
     gimbal_.pitch_pseudo_brake_phase_ = 0U;
     gimbal_.pitch_pseudo_input_latched_ = 0U;
     gimbal_.pitch_pseudo_sign_ = 1;
-    gimbal_.yaw_pseudo_active_ = 0U;
-    gimbal_.yaw_pseudo_brake_phase_ = 0U;
-    gimbal_.yaw_pseudo_input_latched_ = 0U;
-    gimbal_.yaw_pseudo_sign_ = 1;
 }
 
 void gimbalSendCmd(void)

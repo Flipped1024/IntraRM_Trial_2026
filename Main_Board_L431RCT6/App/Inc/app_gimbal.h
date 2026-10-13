@@ -65,15 +65,10 @@ typedef struct {
     uint8_t yaw_feedback_valid_;
     uint32_t yaw_feedback_tick_;
     uint32_t pitch_pseudo_phase_tick_;
-    uint32_t yaw_pseudo_phase_tick_;
     uint8_t pitch_pseudo_active_;
     uint8_t pitch_pseudo_brake_phase_;
     uint8_t pitch_pseudo_input_latched_;
     int8_t pitch_pseudo_sign_;
-    uint8_t yaw_pseudo_active_;
-    uint8_t yaw_pseudo_brake_phase_;
-    uint8_t yaw_pseudo_input_latched_;
-    int8_t yaw_pseudo_sign_;
 
     uint8_t friction_wheels_enabled_;
     uint8_t fire_active_;

@@ -39,15 +39,15 @@ typedef struct {
     volatile int16_t pitch_open_loop_duty_;
     volatile int16_t yaw_open_loop_duty_;
     volatile int16_t pitch_brake_duty_;
-    volatile int16_t yaw_brake_duty_;
-    volatile uint8_t pseudo_closed_loop_enable_;
+    volatile int16_t yaw_brake_duty_; /* Reserved: unused in Yaw open-loop mode. */
+    volatile uint8_t pseudo_closed_loop_enable_; /* Pitch only; Yaw is always open-loop. */
     volatile uint32_t pseudo_drive_ms_;
     volatile uint32_t pseudo_brake_ms_;
-    volatile float pseudo_brake_ratio_;
+    volatile float pseudo_brake_ratio_; /* Reserved: braking uses pitch_brake_duty_. */
     volatile uint8_t pitch_pseudo_active_;
     volatile uint8_t pitch_pseudo_brake_phase_;
-    volatile uint8_t yaw_pseudo_active_;
-    volatile uint8_t yaw_pseudo_brake_phase_;
+    volatile uint8_t yaw_pseudo_active_; /* Always zero. */
+    volatile uint8_t yaw_pseudo_brake_phase_; /* Always zero. */
 } DebugGimbal;
 
 typedef struct {
