@@ -223,10 +223,10 @@ static void gimbalYawUpdate(void)
     const uint8_t input_active =
         (controllerDataIsValid() != 0U && abs(stick) > GIMBAL_YAW_STICK_DEADBAND) ? 1U : 0U;
 
-    /* Negative duty is clockwise on the current vehicle. */
+    /* Positive duty is clockwise on the current vehicle. */
     gimbal_.yaw_target_duty_ = input_active ?
-        ((stick > 0) ? -gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_) :
-         gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_)) : 0;
+        ((stick > 0) ? gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_) :
+         -gimbalDutyClamp(&g_debug_.gimbal_.yaw_open_loop_duty_)) : 0;
 }
 
 void gimbalUpdate(void)
