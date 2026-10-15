@@ -2,7 +2,7 @@
 #include "main.h"
 
 /*
- * 当前板级线序（与 Gimbal_Motor_Driver.ioc 保持一致）：
+ * 当前板级线序（与 Fric_Feed_Motor_Driver.ioc 保持一致）：
  *   370-1: TIM2_CH1 / PA0，方向 PA1
  *   370-2: TIM2_CH3 / PA2，方向 PA3
  *   N20 : TIM3_CH1 / PA6，TIM3_CH2 / PA7

@@ -1,0 +1,52 @@
+[
+    {
+        "File":  "Left_Chassis_Motor/Left_Chassis_Motor.elf",
+        "SHA256":  "39DBC4CC4B9FB55423F10A793391E56B0347FB4CCF33DD10C97BD0E8C07C21CD",
+        "BoardId":  1
+    },
+    {
+        "File":  "Left_Chassis_Motor/Left_Chassis_Motor.jdebug",
+        "SHA256":  "C8D6F300601C77115F901151C58C9B18B426EAF6B3736022D19FB0DA014F1D9B",
+        "BoardId":  1
+    },
+    {
+        "File":  "Right_Chassis_Motor/Right_Chassis_Motor.elf",
+        "SHA256":  "DC5BB71D46B3ECB494DA5BBCD15BAEC607C6291F391398A6AF94755FC7C1A761",
+        "BoardId":  2
+    },
+    {
+        "File":  "Right_Chassis_Motor/Right_Chassis_Motor.jdebug",
+        "SHA256":  "313F814989FB1F3D44A207D5593DD11A34A3E50EF95A95844F5DDB2462749FDD",
+        "BoardId":  2
+    },
+    {
+        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.elf",
+        "SHA256":  "E391F96E7A263A8BD089814C219E13F327FC6F0E360E532381F5D584F7426BA8",
+        "BoardId":  null
+    },
+    {
+        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.jdebug",
+        "SHA256":  "13F0CD9B2657B30242ECDC97AB9EFCD782C91FFB4DABBE08977A0C1F2B2737E1",
+        "BoardId":  null
+    },
+    {
+        "File":  "Yaw_Pitch_Motor_Driver/Yaw_Pitch_Motor_Driver.elf",
+        "SHA256":  "892159F351830A54ADC13AC5BB353543040414333593DCBB6311C1B88428349B",
+        "BoardId":  null
+    },
+    {
+        "File":  "Yaw_Pitch_Motor_Driver/Yaw_Pitch_Motor_Driver.jdebug",
+        "SHA256":  "7A41517AF86EFD3CB54FEBA6201070FB7A3F645978AB799082259E3648C6B25D",
+        "BoardId":  null
+    },
+    {
+        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.elf",
+        "SHA256":  "809BCA0B74C28ACC41BBA8814D8ACE35EB501537C87EBCBE3BFE8EEA60097608",
+        "BoardId":  null
+    },
+    {
+        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.jdebug",
+        "SHA256":  "16DFFE87BC3109F1035FB1ADD3E3321275FA785779C5A5D2D1E3B1985A0F5C9F",
+        "BoardId":  null
+    }
+]

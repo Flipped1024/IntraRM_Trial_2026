@@ -5,7 +5,7 @@
 **********************************************************************
 
 File          : 
-Created       : 01. Jul 2026 15:19
+Created       : 10. Sep 2026 00:00
 Ozone Version : V3.40j
 */
 
@@ -22,17 +22,15 @@ void OnProjectLoad (void) {
   //
   // Dialog-generated settings
   //
-  Project.AddPathSubstitute ("D:/RoboMaster/IntraRM_Trial_2026/Gimbal_Motor_Driver", "$(ProjectDir)");
-  Project.AddPathSubstitute ("d:/robomaster/intrarm_trial_2026/gimbal_motor_driver", "$(ProjectDir)");
-  Project.SetDevice ("STM32F103C6");
-  Project.SetHostIF ("USB", "20741223");
+  Project.SetDevice ("STM32L431RC");
+  Project.SetHostIF ("USB");
   Project.SetTargetIF ("SWD");
   Project.SetTIFSpeed ("4 MHz");
-  Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M3.svd");
+  Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M4F.svd");
   //
   // User settings
   //
-  File.Open ("$(ProjectDir)/build/Gimbal_Motor_Driver.elf");
+  File.Open ("$(ProjectDir)/Main_Board_L431RCT6.elf");
 }
 
 /*********************************************************************

@@ -1,7 +1,13 @@
 #ifndef BOARD_CONFIG_H
 #define BOARD_CONFIG_H
 
+#ifndef BOARD_ID
 #define BOARD_ID 2
+#endif
+
+#if BOARD_ID != 1 && BOARD_ID != 2
+#error "BOARD_ID must be 1 (left) or 2 (right)"
+#endif
 
 #if BOARD_ID == 1
 #define CAN_FILTER_ID 0x111U

@@ -16,7 +16,7 @@ Pitch 相关的 TIM1 编码器和对应控制逻辑均已移除；TIM3 现在专
 
 ### CubeMX 重新生成注意事项
 
-- `Gimbal_Motor_Driver.ioc` 是当前线序的配置源：PA1/PA3 配置为 370 方向 GPIO，PA6/PA7 配置为 TIM3_CH1/CH2。
+- `Fric_Feed_Motor_Driver.ioc` 是当前线序的配置源：PA1/PA3 配置为 370 方向 GPIO，PA6/PA7 配置为 TIM3_CH1/CH2。
 - `Core/Inc/main.h`、`Core/Inc/tim.h`、`Core/Src/tim.c` 中的 `USER CODE BEGIN/END` 注释保留了同一份线序说明，重新生成后请检查这些注释和 `.ioc` 是否一致。
 - 应用层实际通道绑定在 `Bsp/bsp_motor.c`，CubeMX 不会生成或覆盖该文件。
 
