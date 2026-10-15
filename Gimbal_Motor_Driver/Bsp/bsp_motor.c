@@ -36,8 +36,8 @@ static MotorHandleType motor_list[MOTOR_NUM] = {
         .htim_ = &htim3,
         .pwm_mode_ = MOTOR_MODE_DUAL_PWM,
         /* 交换双 PWM 输出，使相同拨弹指令的实际转向反转。 */
-        .channel_in1_ = TIM_CHANNEL_2,
-        .channel_in2_ = TIM_CHANNEL_1,
+        .channel_in1_ = TIM_CHANNEL_1,
+        .channel_in2_ = TIM_CHANNEL_2,
         .dir_port_ = NULL,
         .dir_pin_ = 0,
         .current_duty_ = 0
