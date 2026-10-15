@@ -182,9 +182,9 @@ mingw32-make -j2
 
 ## 当前云台手柄映射
 
-主控通过 `0x114` 下发开环占空比，由主控实现 Pitch 的伪闭环时序：
+主控通过 `0x114` 下发开环占空比，Pitch 和 Yaw 均采用纯开环控制：
 
-- 右摇杆上下：Pitch 每次离开死区触发一次“驱动 → 反向制动 → 输出 0”。持续推杆不会重复触发，回到死区后可再次触发；松杆后当前动作仍会按时序完成。
+- 右摇杆上下：Pitch 持续输出固定占空比，松杆或回到死区立即输出 0，不执行伪闭环驱动、反向制动或自动归中。
 - 右摇杆左右：Yaw 纯开环，右推顺时针、左推逆时针；持续推杆持续输出固定占空比，松杆进入死区立即输出 0，不执行定时停止、反向制动或归中。
 - 两轴死区分别为 `GIMBAL_PITCH_STICK_DEADBAND`、`GIMBAL_YAW_STICK_DEADBAND`，当前均为 80；只有摇杆绝对值大于该值才有效。
 - `0x114` 字节 0–1 为 Pitch `int16_t` 占空比，字节 4–5 为 Yaw `int16_t` 占空比，均为大端序；驱动板使用 CAN 开环模式，不依赖角度环或速度环。
@@ -199,19 +199,15 @@ MPU6050 驱动已按 `MPU6050例程(HAL库版本)` 的 `MPU6050_Get_Angle_Plus` 
 
 拨弹/摩擦轮板使用 `0x113`：字节 4–5 为大端 `fric_duty`，字节 6–7 为大端 `feed_duty`；Yaw/Pitch 双轴板使用 `0x114` 下发两个大端 `int16_t` 占空比目标。Yaw/Pitch 反馈为 `0x208`（两轴 10 ms 编码器增量）和 `0x209`（两轴累计编码器位置）。
 
-### Pitch 伪闭环与 Yaw 开环实时调节
+### Pitch 与 Yaw 开环实时调节
 
 参数位于 `g_debug_.gimbal_`，Ozone 修改后在下一个 10 ms 控制周期使用：
 
 | 字段 | 用途 | 默认值 |
 | --- | --- | --- |
-| `pseudo_closed_loop_enable_` | 仅 Pitch：1 为伪闭环，0 为持续开环；不影响 Yaw | 1 |
-| `pseudo_drive_ms_` | Pitch 驱动时间，最大 60000 ms | 100 ms |
-| `pseudo_brake_ms_` | Pitch 反向制动时间，最大 10000 ms | 10 ms |
 | `pitch_open_loop_duty_` | Pitch 驱动占空比幅值 | 999 |
-| `pitch_brake_duty_` | Pitch 反向制动占空比幅值 | 200 |
 | `yaw_open_loop_duty_` | Yaw 持续开环占空比幅值 | 700 |
 
-占空比幅值限制为 0–999。`pitch_pseudo_active_`、`pitch_pseudo_brake_phase_` 用于观察 Pitch 动作阶段；`yaw_pseudo_active_`、`yaw_pseudo_brake_phase_` 始终为 0。兼容保留的 `yaw_brake_duty_` 和 `pseudo_brake_ratio_` 不参与控制。
+占空比幅值限制为 0–999。Pitch 和 Yaw 都是摇杆持续控制，松杆立即输出 0；伪闭环相关字段仅为兼容旧版 Ozone 保留，不参与控制，伪闭环状态字段始终为 0。
 
-固定默认驱动占空比在 `App/Inc/app_gimbal.h` 的 `GIMBAL_PITCH_OPEN_LOOP_DUTY`、`GIMBAL_YAW_OPEN_LOOP_DUTY` 中修改；时序和 Pitch 制动占空比默认值在 `App/Src/app_debug.c` 的 `debugInit()` 中修改。Ozone 的实时修改断电后不保存。
+固定默认驱动占空比在 `App/Inc/app_gimbal.h` 的 `GIMBAL_PITCH_OPEN_LOOP_DUTY`、`GIMBAL_YAW_OPEN_LOOP_DUTY` 中修改；Ozone 可实时修改 `pitch_open_loop_duty_` 和 `yaw_open_loop_duty_`，断电后不保存。

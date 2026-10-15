@@ -33,7 +33,7 @@ void debugInit(void)
     g_debug_.gimbal_.yaw_open_loop_duty_ = GIMBAL_YAW_OPEN_LOOP_DUTY;
     g_debug_.gimbal_.pitch_brake_duty_ = 200;
     g_debug_.gimbal_.yaw_brake_duty_ = 999;
-    g_debug_.gimbal_.pseudo_closed_loop_enable_ = 1U;
+    g_debug_.gimbal_.pseudo_closed_loop_enable_ = 0U;
     g_debug_.gimbal_.pseudo_drive_ms_ = 100U;
     g_debug_.gimbal_.pseudo_brake_ms_ = 10U;
     g_debug_.gimbal_.pseudo_brake_ratio_ = 0.20f;

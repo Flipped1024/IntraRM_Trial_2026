@@ -149,18 +149,6 @@ static void gimbalCalibCenter(void)
     }
 }
 
-static uint32_t gimbalPseudoDriveMs(void)
-{
-    return (g_debug_.gimbal_.pseudo_drive_ms_ > 60000U) ?
-           60000U : g_debug_.gimbal_.pseudo_drive_ms_;
-}
-
-static uint32_t gimbalPseudoBrakeMs(void)
-{
-    return (g_debug_.gimbal_.pseudo_brake_ms_ > 10000U) ?
-           10000U : g_debug_.gimbal_.pseudo_brake_ms_;
-}
-
 static int16_t gimbalDutyClamp(volatile int16_t *value)
 {
     int32_t duty = *value;
@@ -177,43 +165,14 @@ static void gimbalPitchSpeedUpdate(void)
         (controllerDataIsValid() != 0U && abs(stick) > GIMBAL_PITCH_STICK_DEADBAND) ? 1U : 0U;
     if (stick > 127) stick = 127;
     if (stick < -127) stick = -127;
-    if (input_active == 0U) gimbal_.pitch_pseudo_input_latched_ = 0U;
-    if (g_debug_.gimbal_.pseudo_closed_loop_enable_ == 0U) {
-        gimbal_.pitch_pseudo_active_ = 0U;
-        gimbal_.pitch_pseudo_brake_phase_ = 0U;
-        gimbal_.pitch_target_duty_ = input_active ?
-            ((stick > 0) ? gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_) :
-             -gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_)) : 0;
-        return;
-    }
-    if (input_active != 0U && gimbal_.pitch_pseudo_input_latched_ == 0U &&
-        gimbal_.pitch_pseudo_active_ == 0U) {
-        gimbal_.pitch_pseudo_input_latched_ = 1U;
-        gimbal_.pitch_pseudo_active_ = 1U;
-        gimbal_.pitch_pseudo_brake_phase_ = 0U;
-        gimbal_.pitch_pseudo_phase_tick_ = HAL_GetTick();
-        gimbal_.pitch_pseudo_sign_ = (stick >= 0) ? 1 : -1;
-    }
-    if (gimbal_.pitch_pseudo_active_ == 0U) {
-        gimbal_.pitch_target_duty_ = 0;
-    } else if (gimbal_.pitch_pseudo_brake_phase_ == 0U) {
-        gimbal_.pitch_target_duty_ = (gimbal_.pitch_pseudo_sign_ > 0) ?
-            gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_) :
-            -gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_);
-        if (HAL_GetTick() - gimbal_.pitch_pseudo_phase_tick_ >= gimbalPseudoDriveMs()) {
-            gimbal_.pitch_pseudo_brake_phase_ = 1U;
-            gimbal_.pitch_pseudo_phase_tick_ = HAL_GetTick();
-        }
-    } else {
-        gimbal_.pitch_target_duty_ = (gimbal_.pitch_pseudo_sign_ > 0) ?
-            -(int16_t)gimbalDutyClamp(&g_debug_.gimbal_.pitch_brake_duty_) :
-            (int16_t)gimbalDutyClamp(&g_debug_.gimbal_.pitch_brake_duty_);
-        if (HAL_GetTick() - gimbal_.pitch_pseudo_phase_tick_ >= gimbalPseudoBrakeMs()) {
-            gimbal_.pitch_pseudo_active_ = 0U;
-            gimbal_.pitch_pseudo_brake_phase_ = 0U;
-            gimbal_.pitch_target_duty_ = 0;
-        }
-    }
+    /* Pitch is intentionally pure open-loop: hold the stick to drive and
+     * release it to output zero.  The old timed pseudo-loop is disabled. */
+    gimbal_.pitch_pseudo_active_ = 0U;
+    gimbal_.pitch_pseudo_brake_phase_ = 0U;
+    gimbal_.pitch_pseudo_input_latched_ = 0U;
+    gimbal_.pitch_target_duty_ = input_active ?
+        ((stick > 0) ? gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_) :
+         -gimbalDutyClamp(&g_debug_.gimbal_.pitch_open_loop_duty_)) : 0;
 }
 
 /* Yaw always uses continuous open-loop duty, independent of Pitch timing. */
