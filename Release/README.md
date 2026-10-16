@@ -24,3 +24,15 @@
 `manifest.json` 记录 ELF 和 Ozone 文件的 SHA256。固件源于已确认可上车的提交 `e03c195`，本次只调整工程名称和底盘板号的构建方式，未修改控制算法。
 
 开发者可在仓库根目录运行 `powershell -ExecutionPolicy Bypass -File .\build-release.ps1` 重新生成全部包。左右底盘使用独立构建目录，构建不会修改 `board_config.h` 的默认板号。
+
+## 反向线序固件
+
+批量生产中若电机线束为完全反向的新线序（从右至左：电机负极、编码器正极、编码器 B 相、编码器 A 相、编码器负极、电机正极），请使用下表带 `_Reverse` 的固件；标准线序继续使用不带后缀的原固件。两种固件不能混用。
+
+| 文件夹 | 适用板卡 | 说明 |
+| --- | --- | --- |
+| `Left_Chassis_Motor_Reverse` | 左底盘驱动板，`BOARD_ID=1` | 新反向线序 |
+| `Right_Chassis_Motor_Reverse` | 右底盘驱动板，`BOARD_ID=2` | 新反向线序 |
+| `Yaw_Pitch_Motor_Driver_Reverse` | Yaw/Pitch 驱动板 | 新反向线序 |
+
+每个 `_Reverse` 文件夹仍包含同名 `.elf` 和 `.jdebug`，用 Ozone 打开同名 `.jdebug` 即可烧录对应 ELF。烧录前请按板卡位置和线序逐台核对。

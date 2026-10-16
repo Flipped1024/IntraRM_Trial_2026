@@ -1,5 +1,15 @@
 ﻿[
     {
+        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.elf",
+        "SHA256":  "E391F96E7A263A8BD089814C219E13F327FC6F0E360E532381F5D584F7426BA8",
+        "BoardId":  null
+    },
+    {
+        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.jdebug",
+        "SHA256":  "13F0CD9B2657B30242ECDC97AB9EFCD782C91FFB4DABBE08977A0C1F2B2737E1",
+        "BoardId":  null
+    },
+    {
         "File":  "Left_Chassis_Motor/Left_Chassis_Motor.elf",
         "SHA256":  "39DBC4CC4B9FB55423F10A793391E56B0347FB4CCF33DD10C97BD0E8C07C21CD",
         "BoardId":  1
@@ -8,6 +18,26 @@
         "File":  "Left_Chassis_Motor/Left_Chassis_Motor.jdebug",
         "SHA256":  "C8D6F300601C77115F901151C58C9B18B426EAF6B3736022D19FB0DA014F1D9B",
         "BoardId":  1
+    },
+    {
+        "File":  "Left_Chassis_Motor_Reverse/Left_Chassis_Motor_Reverse.elf",
+        "SHA256":  "6A95BBC1F2E84CC59EFCBA478B21DC589CD01E0A2DE868E530AAAA11416D4ECE",
+        "BoardId":  1
+    },
+    {
+        "File":  "Left_Chassis_Motor_Reverse/Left_Chassis_Motor_Reverse.jdebug",
+        "SHA256":  "E478DBC208AD239F38A95F41F5A8BB72FBA179BDEC68FCCBBAA49CF9180A592B",
+        "BoardId":  1
+    },
+    {
+        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.elf",
+        "SHA256":  "26A919ACC17F244DD561129BC4582F32AA87485EB2AE9CA7228D827B82B8CB12",
+        "BoardId":  null
+    },
+    {
+        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.jdebug",
+        "SHA256":  "16DFFE87BC3109F1035FB1ADD3E3321275FA785779C5A5D2D1E3B1985A0F5C9F",
+        "BoardId":  null
     },
     {
         "File":  "Right_Chassis_Motor/Right_Chassis_Motor.elf",
@@ -20,14 +50,14 @@
         "BoardId":  2
     },
     {
-        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.elf",
-        "SHA256":  "E391F96E7A263A8BD089814C219E13F327FC6F0E360E532381F5D584F7426BA8",
-        "BoardId":  null
+        "File":  "Right_Chassis_Motor_Reverse/Right_Chassis_Motor_Reverse.elf",
+        "SHA256":  "B0F144B24703CF26710BA5BA0C5753A5EA4E7FEC17AB6D0A545006A653238C39",
+        "BoardId":  2
     },
     {
-        "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.jdebug",
-        "SHA256":  "13F0CD9B2657B30242ECDC97AB9EFCD782C91FFB4DABBE08977A0C1F2B2737E1",
-        "BoardId":  null
+        "File":  "Right_Chassis_Motor_Reverse/Right_Chassis_Motor_Reverse.jdebug",
+        "SHA256":  "8858EEF826A5FD1837A56BCD3CA496FE3A9D0C63F3C821B3176887BAFA084590",
+        "BoardId":  2
     },
     {
         "File":  "Yaw_Pitch_Motor_Driver/Yaw_Pitch_Motor_Driver.elf",
@@ -40,13 +70,13 @@
         "BoardId":  null
     },
     {
-        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.elf",
-        "SHA256":  "26A919ACC17F244DD561129BC4582F32AA87485EB2AE9CA7228D827B82B8CB12",
+        "File":  "Yaw_Pitch_Motor_Driver_Reverse/Yaw_Pitch_Motor_Driver_Reverse.elf",
+        "SHA256":  "64475ADC1B2F08B7B789D7C8C8C05F85D1E6A1A6774B18BE1A82CC0CC6E93D8B",
         "BoardId":  null
     },
     {
-        "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.jdebug",
-        "SHA256":  "16DFFE87BC3109F1035FB1ADD3E3321275FA785779C5A5D2D1E3B1985A0F5C9F",
+        "File":  "Yaw_Pitch_Motor_Driver_Reverse/Yaw_Pitch_Motor_Driver_Reverse.jdebug",
+        "SHA256":  "470A7A95FF4F0CC9B9948C8261606AFE37282F0B5E1913762A1C71CD5708BFCE",
         "BoardId":  null
     }
 ]

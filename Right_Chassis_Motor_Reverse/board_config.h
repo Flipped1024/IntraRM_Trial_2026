@@ -1,0 +1,26 @@
+#ifndef BOARD_CONFIG_H
+#define BOARD_CONFIG_H
+
+#ifndef BOARD_ID
+#define BOARD_ID 2
+#endif
+
+#if BOARD_ID != 1 && BOARD_ID != 2
+#error "BOARD_ID must be 1 (left) or 2 (right)"
+#endif
+
+#if BOARD_ID == 1
+#define CAN_FILTER_ID 0x111U
+#define CTRL_MSG_ID 0x111U
+#define REPORT_SPEED_MSG_ID 0x222U
+#define REPORT_POS_MSG_ID 0x223U
+#endif
+
+#if BOARD_ID == 2
+#define CAN_FILTER_ID 0x112U
+#define CTRL_MSG_ID 0x112U
+#define REPORT_SPEED_MSG_ID 0x224U
+#define REPORT_POS_MSG_ID 0x225U
+#endif
+
+#endif /* BOARD_CONFIG_H */
