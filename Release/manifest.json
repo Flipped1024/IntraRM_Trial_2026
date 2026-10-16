@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "File":  "Fric_Feed_Motor_Driver/Fric_Feed_Motor_Driver.elf",
         "SHA256":  "E391F96E7A263A8BD089814C219E13F327FC6F0E360E532381F5D584F7426BA8",
@@ -31,7 +31,7 @@
     },
     {
         "File":  "Main_Board_L431RCT6/Main_Board_L431RCT6.elf",
-        "SHA256":  "26A919ACC17F244DD561129BC4582F32AA87485EB2AE9CA7228D827B82B8CB12",
+        "SHA256":  "81F87A12EFDDD2E2188E27D298C366D06F90B2E5FDC7ABAF2EC67E20F6FC3839",
         "BoardId":  null
     },
     {
