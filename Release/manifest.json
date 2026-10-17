@@ -78,5 +78,15 @@
         "File":  "Yaw_Pitch_Motor_Driver_Reverse/Yaw_Pitch_Motor_Driver_Reverse.jdebug",
         "SHA256":  "470A7A95FF4F0CC9B9948C8261606AFE37282F0B5E1913762A1C71CD5708BFCE",
         "BoardId":  null
+    },
+    {
+        "File":  "Yaw_Pitch_Motor_Driver_Yaw_Reverse/Yaw_Pitch_Motor_Driver_Yaw_Reverse.elf",
+        "SHA256":  "54CDC7FBEDEB8EB031E8D23F198D2078A2D84C701DFD2B6455D94F2DA25AC318",
+        "BoardId":  null
+    },
+    {
+        "File":  "Yaw_Pitch_Motor_Driver_Yaw_Reverse/Yaw_Pitch_Motor_Driver_Yaw_Reverse.jdebug",
+        "SHA256":  "D3A1C3D2D54DDD2E95F869A0E75BCF9A21EC5C76DF8B763DB92AFC8FBC945778",
+        "BoardId":  null
     }
 ]

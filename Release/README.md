@@ -36,3 +36,14 @@
 | `Yaw_Pitch_Motor_Driver_Reverse` | Yaw/Pitch 驱动板 | 新反向线序 |
 
 每个 `_Reverse` 文件夹仍包含同名 `.elf` 和 `.jdebug`，用 Ozone 打开同名 `.jdebug` 即可烧录对应 ELF。烧录前请按板卡位置和线序逐台核对。
+## Pitch 正向、Yaw 反向的混合线序
+
+新增文件夹：Yaw_Pitch_Motor_Driver_Yaw_Reverse。仅用于 Pitch 正向线序、Yaw 反向线序的云台驱动板，两轴均保留纯开环控制。
+
+| Pitch 线序 | Yaw 线序 | 应选固件文件夹 |
+| --- | --- | --- |
+| 正向 | 正向 | Yaw_Pitch_Motor_Driver |
+| 反向 | 反向 | Yaw_Pitch_Motor_Driver_Reverse |
+| 正向 | 反向 | Yaw_Pitch_Motor_Driver_Yaw_Reverse |
+
+打开新文件夹内同名 .jdebug 烧录同目录 .elf。原版与两轴反向版本继续保留，请逐轴核对线束。本新增版本已通过编译，尚未进行实车方向验证；首次烧录后分别短按测试 Pitch 和 Yaw，并确认松手停止。

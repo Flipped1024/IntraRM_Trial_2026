@@ -6,9 +6,16 @@ $jobs = @(
     @{ Name='Right_Chassis_Motor'; Project='Chassis_Motor_Driver'; Template='debug.jdebug'; Id=2 },
     @{ Name='Fric_Feed_Motor_Driver'; Project='Fric_Feed_Motor_Driver'; Template='debug.jdebug' },
     @{ Name='Yaw_Pitch_Motor_Driver'; Project='Yaw_Pitch_Motor_Driver'; Template='debug.jdebug' },
+    @{ Name='Yaw_Pitch_Motor_Driver_Yaw_Reverse'; Project='Yaw_Pitch_Motor_Driver_Yaw_Reverse'; Template='debug.jdebug' },
     @{ Name='Main_Board_L431RCT6'; Project='Main_Board_L431RCT6'; Template='Main_Board_L431RCT6.jdebug' }
 )
+# Preserve packages not rebuilt by this script (for example existing Reverse variants).
 $manifest = @()
+$manifestPath = Join-Path $root 'Release/manifest.json'
+if (Test-Path $manifestPath) {
+    $existingManifest = Get-Content -Raw -Encoding UTF8 $manifestPath | ConvertFrom-Json
+    $manifest = @($existingManifest | Where-Object { ($_.File.Split('/')[0]) -notin $jobs.Name })
+}
 foreach ($job in $jobs) {
     $project = Join-Path $root $job.Project
     $build = 'build/release_' + $job.Name
@@ -39,4 +46,4 @@ foreach ($job in $jobs) {
     }
 }
 $manifest | ConvertTo-Json | ForEach-Object { [IO.File]::WriteAllText((Join-Path $root 'Release/manifest.json'), $_, $utf8) }
-Write-Host 'Release complete: five ELF/Ozone packages.'
+Write-Host 'Release complete: ELF/Ozone packages generated.'
